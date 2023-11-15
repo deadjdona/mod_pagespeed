@@ -1,18 +1,21 @@
-// Copyright 2013 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_SYSTEM_SYSTEM_REWRITE_OPTIONS_H_
 #define PAGESPEED_SYSTEM_SYSTEM_REWRITE_OPTIONS_H_
@@ -48,6 +51,8 @@ class SystemRewriteOptions : public RewriteOptions {
   static const char kRedisServer[];
   static const char kRedisReconnectionDelayMs[];
   static const char kRedisTimeoutUs[];
+  static const char kRedisDatabaseIndex[];
+  static const char kRedisTTLSec[];
 
   static constexpr int kMemcachedDefaultPort = 11211;
   static constexpr int kRedisDefaultPort = 6379;
@@ -58,15 +63,15 @@ class SystemRewriteOptions : public RewriteOptions {
   SystemRewriteOptions(const StringPiece& description,
                        ThreadSystem* thread_system);
   explicit SystemRewriteOptions(ThreadSystem* thread_system);
-  virtual ~SystemRewriteOptions();
+  ~SystemRewriteOptions() override;
 
-  virtual void Merge(const RewriteOptions& src);
+  void Merge(const RewriteOptions& src) override;
 
-  virtual OptionSettingResult ParseAndSetOptionFromName2(
-      StringPiece name, StringPiece arg1, StringPiece arg2,
-      GoogleString* msg, MessageHandler* handler);
+  OptionSettingResult ParseAndSetOptionFromName2(
+      StringPiece name, StringPiece arg1, StringPiece arg2, GoogleString* msg,
+      MessageHandler* handler) override;
 
-  virtual GoogleString SubclassSignatureLockHeld();
+  GoogleString SubclassSignatureLockHeld() override;
 
   int64 file_cache_clean_interval_ms() const {
     return file_cache_clean_interval_ms_.value();
@@ -95,9 +100,7 @@ class SystemRewriteOptions : public RewriteOptions {
   void set_file_cache_clean_inode_limit(int64 x) {
     set_option(x, &file_cache_clean_inode_limit_);
   }
-  int64 lru_cache_byte_limit() const {
-    return lru_cache_byte_limit_.value();
-  }
+  int64 lru_cache_byte_limit() const { return lru_cache_byte_limit_.value(); }
   void set_lru_cache_byte_limit(int64 x) {
     set_option(x, &lru_cache_byte_limit_);
   }
@@ -119,12 +122,8 @@ class SystemRewriteOptions : public RewriteOptions {
   void set_compress_metadata_cache(bool x) {
     set_option(x, &compress_metadata_cache_);
   }
-  bool statistics_enabled() const {
-    return statistics_enabled_.value();
-  }
-  void set_statistics_enabled(bool x) {
-    set_option(x, &statistics_enabled_);
-  }
+  bool statistics_enabled() const { return statistics_enabled_.value(); }
+  void set_statistics_enabled(bool x) { set_option(x, &statistics_enabled_); }
   bool statistics_logging_enabled() const {
     return statistics_logging_enabled_.value();
   }
@@ -160,15 +159,9 @@ class SystemRewriteOptions : public RewriteOptions {
   void set_memcached_servers(const ExternalClusterSpec& x) {
     set_option(x, &memcached_servers_);
   }
-  int memcached_threads() const {
-    return memcached_threads_.value();
-  }
-  void set_memcached_threads(int x) {
-    set_option(x, &memcached_threads_);
-  }
-  int memcached_timeout_us() const {
-    return memcached_timeout_us_.value();
-  }
+  int memcached_threads() const { return memcached_threads_.value(); }
+  void set_memcached_threads(int x) { set_option(x, &memcached_threads_); }
+  int memcached_timeout_us() const { return memcached_timeout_us_.value(); }
   bool has_memcached_timeout_us() const {
     return memcached_timeout_us_.was_set();
   }
@@ -184,9 +177,13 @@ class SystemRewriteOptions : public RewriteOptions {
   int64 redis_reconnection_delay_ms() const {
     return redis_reconnection_delay_ms_.value();
   }
-  int64 redis_timeout_us() const {
-    return redis_timeout_us_.value();
+  int64 redis_timeout_us() const { return redis_timeout_us_.value(); }
+  int redis_database_index() const { return redis_database_index_.value(); }
+  bool has_redis_database_index() const {
+    return redis_database_index_.was_set();
   }
+  int redis_ttl_sec() const { return redis_ttl_sec_.value(); }
+  bool has_redis_ttl_sec() const { return redis_ttl_sec_.was_set(); }
   int64 slow_file_latency_threshold_us() const {
     return slow_file_latency_threshold_us_.value();
   }
@@ -196,9 +193,7 @@ class SystemRewriteOptions : public RewriteOptions {
   void set_slow_file_latency_threshold_us(int64 x) {
     set_option(x, &slow_file_latency_threshold_us_);
   }
-  const GoogleString& fetcher_proxy() const {
-    return fetcher_proxy_.value();
-  }
+  const GoogleString& fetcher_proxy() const { return fetcher_proxy_.value(); }
   void set_fetcher_proxy(const GoogleString& x) {
     set_option(x, &fetcher_proxy_);
   }
@@ -227,43 +222,27 @@ class SystemRewriteOptions : public RewriteOptions {
     return cache_flush_filename_.value();
   }
 
-  const GoogleString& https_options() const {
-    return https_options_.value();
-  }
+  const GoogleString& https_options() const { return https_options_.value(); }
   const GoogleString& ssl_cert_directory() const {
     return ssl_cert_directory_.value();
   }
-  const GoogleString& ssl_cert_file() const {
-    return ssl_cert_file_.value();
-  }
+  const GoogleString& ssl_cert_file() const { return ssl_cert_file_.value(); }
 
-  int64 slurp_flush_limit() const {
-    return slurp_flush_limit_.value();
-  }
-  void set_slurp_flush_limit(int64 x) {
-    set_option(x, &slurp_flush_limit_);
-  }
-  bool slurp_read_only() const {
-    return slurp_read_only_.value();
-  }
-  void set_slurp_read_only(bool x) {
-    set_option(x, &slurp_read_only_);
-  }
+  int64 slurp_flush_limit() const { return slurp_flush_limit_.value(); }
+  void set_slurp_flush_limit(int64 x) { set_option(x, &slurp_flush_limit_); }
+  bool slurp_read_only() const { return slurp_read_only_.value(); }
+  void set_slurp_read_only(bool x) { set_option(x, &slurp_read_only_); }
   bool rate_limit_background_fetches() const {
     return rate_limit_background_fetches_.value();
   }
   const GoogleString& slurp_directory() const {
     return slurp_directory_.value();
   }
-  void set_slurp_directory(GoogleString x) {
-    set_option(x, &slurp_directory_);
-  }
+  void set_slurp_directory(GoogleString x) { set_option(x, &slurp_directory_); }
   bool disable_loopback_routing() const {
     return disable_loopback_routing_.value();
   }
-  bool fetch_with_gzip() const {
-    return fetch_with_gzip_.value();
-  }
+  bool fetch_with_gzip() const { return fetch_with_gzip_.value(); }
   int64 ipro_max_response_bytes() const {
     return ipro_max_response_bytes_.value();
   }
@@ -311,12 +290,8 @@ class SystemRewriteOptions : public RewriteOptions {
   // If this is set to true, we'll turn on our fallback proxy-like behavior
   // on non-.pagespeed. URLs without changing the main fetcher from Serf
   // (the way the slurp options would).
-  bool test_proxy() const {
-    return test_proxy_.value();
-  }
-  void set_test_proxy(bool x) {
-    set_option(x, &test_proxy_);
-  }
+  bool test_proxy() const { return test_proxy_.value(); }
+  void set_test_proxy(bool x) { set_option(x, &test_proxy_); }
 
   // Returns true if we were asked to configure StaticAssetManager to
   // serve static assets that are usually compiled in from an external
@@ -344,21 +319,17 @@ class SystemRewriteOptions : public RewriteOptions {
   //  - If it's non-empty, the fallback URLs will be fetched from the given
   //    slurp directory.  PageSpeed resource fetches, however, will still
   //    use the usual fetcher (e.g. Serf).
-  GoogleString test_proxy_slurp() const {
-    return test_proxy_slurp_.value();
-  }
+  GoogleString test_proxy_slurp() const { return test_proxy_slurp_.value(); }
 
   // Helper functions
-  bool slurping_enabled() const {
-    return !slurp_directory().empty();
-  }
+  bool slurping_enabled() const { return !slurp_directory().empty(); }
 
   bool slurping_enabled_read_only() const {
     return slurping_enabled() && slurp_read_only();
   }
 
-  virtual SystemRewriteOptions* Clone() const;
-  virtual SystemRewriteOptions* NewOptions() const;
+  SystemRewriteOptions* Clone() const override;
+  SystemRewriteOptions* NewOptions() const override;
 
   // Returns a suitably down cast version of 'instance' if it is an instance
   // of this class, NULL if not.
@@ -377,18 +348,18 @@ class SystemRewriteOptions : public RewriteOptions {
   // FetchHttps
   class HttpsOptions : public Option<GoogleString> {
    public:
-    virtual bool SetFromString(StringPiece value_string,
-                               GoogleString* error_detail);
+    bool SetFromString(StringPiece value_string,
+                       GoogleString* error_detail) override;
   };
 
   class StaticAssetCDNOptions : public OptionTemplateBase<GoogleString> {
    public:
-    virtual bool SetFromString(StringPiece value_string,
-                               GoogleString* error_detail);
+    bool SetFromString(StringPiece value_string,
+                       GoogleString* error_detail) override;
 
-    virtual GoogleString Signature(const Hasher* hasher) const;
-    virtual GoogleString ToString() const;
-    virtual void Merge(const OptionBase* src);
+    GoogleString Signature(const Hasher* hasher) const override;
+    GoogleString ToString() const override;
+    void Merge(const OptionBase* src) override;
 
     // value() here is just the base path.
     const StaticAssetSet& asset_set() const {
@@ -400,7 +371,7 @@ class SystemRewriteOptions : public RewriteOptions {
     CopyOnWrite<StaticAssetSet> static_assets_to_cdn_;
   };
 
-  template<typename Spec, int default_port>
+  template <typename Spec, int default_port>
   class ExternalServersOption : public OptionTemplateBase<Spec> {
    public:
     bool SetFromString(StringPiece value_string,
@@ -408,9 +379,7 @@ class SystemRewriteOptions : public RewriteOptions {
       return this->mutable_value().SetFromString(value_string, default_port,
                                                  error_detail);
     }
-    GoogleString ToString() const override {
-      return this->value().ToString();
-    }
+    GoogleString ToString() const override { return this->value().ToString(); }
     GoogleString Signature(const Hasher* hasher) const override {
       return hasher->Hash(ToString());
     }
@@ -428,24 +397,20 @@ class SystemRewriteOptions : public RewriteOptions {
 
   // Adds an option to system_properties_.
   //
-  template<class OptionClass>
+  template <class OptionClass>
   static void AddSystemProperty(typename OptionClass::ValueType default_value,
                                 OptionClass SystemRewriteOptions::*offset,
-                                const char* id,
-                                StringPiece option_name,
-                                const char* help,
-                                bool safe_to_print) {
+                                const char* id, StringPiece option_name,
+                                const char* help, bool safe_to_print) {
     AddProperty(default_value, offset, id, option_name, kServerScope, help,
                 safe_to_print, system_properties_);
   }
 
-  template<class OptionClass>
+  template <class OptionClass>
   static void AddSystemProperty(typename OptionClass::ValueType default_value,
                                 OptionClass SystemRewriteOptions::*offset,
-                                const char* id,
-                                StringPiece option_name,
-                                OptionScope scope,
-                                const char* help,
+                                const char* id, StringPiece option_name,
+                                OptionScope scope, const char* help,
                                 bool safe_to_print) {
     AddProperty(default_value, offset, id, option_name, scope, help,
                 safe_to_print, system_properties_);
@@ -499,6 +464,8 @@ class SystemRewriteOptions : public RewriteOptions {
   Option<int> memcached_timeout_us_;
   Option<int64> redis_reconnection_delay_ms_;
   Option<int64> redis_timeout_us_;
+  Option<int> redis_database_index_;
+  Option<int> redis_ttl_sec_;
 
   Option<int64> slow_file_latency_threshold_us_;
   Option<int64> file_cache_clean_inode_limit_;

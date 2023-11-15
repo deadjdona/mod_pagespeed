@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-# Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +17,5 @@
 start_test CSS minify for unicode-range descriptor.
 
 URL="$TEST_ROOT/css_minify_unicode_range_descriptor.html?PageSpeedFilters=+inline_css"
-RESPONSE_OUT=$(http_proxy=$SECONDARY_HOSTNAME $WGET_DUMP $URL)
-
-# checking for unicode range with valid construct 
-MATCHES=$(echo "$RESPONSE_OUT" | fgrep -c "unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116")
-check [ $MATCHES -eq 1 ]
+http_proxy=$SECONDARY_HOSTNAME fetch_until "$URL" \
+    "fgrep -c unicode-range:U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116" 1

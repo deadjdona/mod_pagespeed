@@ -1,20 +1,22 @@
 /*
- * Copyright 2016 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovich@google.com (Maksim Orlovich)
 //
 // Contains special slots that help rewrite images inside srcset attributes.
 
@@ -50,16 +52,18 @@ class SrcSetSlotCollection : public RefCounted<SrcSetSlotCollection> {
     GoogleString url;
     GoogleString descriptor;
 
-    // The slot owns us. Note that some of these may be nullptr if a resource
+    // These reference are released by SrcSetSlotCollection::Detach(),
+    // which is called in RewriteDriver::FlushAsyncDone to break the
+    // reference count cycle.
+    // Note that some of these may not be set if a resource
     // couldn't be created.
-    SrcSetSlot* slot;
+    RefCountedPtr<SrcSetSlot> slot;
   };
 
   // Note: you need to separately call Initialize() to actually create all the
   // slots and the like. This sets up just enough to be able to compare
   // slots.
-  SrcSetSlotCollection(RewriteDriver* driver,
-                       HtmlElement* element,
+  SrcSetSlotCollection(RewriteDriver* driver, HtmlElement* element,
                        HtmlElement::Attribute* attribute);
 
   // This will parse the passed in srcset attribute, and create all the slots,
@@ -69,7 +73,7 @@ class SrcSetSlotCollection : public RefCounted<SrcSetSlotCollection> {
   int num_image_candidates() { return candidates_.size(); }
 
   // may be nullptr.
-  SrcSetSlot* slot(int idx) { return candidates_[idx].slot; }
+  SrcSetSlot* slot(int idx) { return candidates_[idx].slot.get(); }
   const GoogleString& url(int idx) { return candidates_[idx].url; }
   void set_url(int idx, GoogleString new_url) {
     candidates_[idx].url = new_url;
@@ -92,6 +96,13 @@ class SrcSetSlotCollection : public RefCounted<SrcSetSlotCollection> {
   // (Which is sadly quadratic, but the size should be small enough that it's
   //  more practical than trying to coordinate).
   void Commit();
+
+  // Releases any references we have to SrcSetSlots.
+  void Detach() {
+    for (int i = 0; i < num_image_candidates(); i++) {
+      candidates_[i].slot.reset(nullptr);
+    }
+  }
 
   // Parses the input srcset attribute into *out (replacing its contents),
   // filling in the url and descriptor fields (but not trying to create
@@ -125,9 +136,8 @@ class SrcSetSlotCollectionComparator {
                   const SrcSetSlotCollectionPtr& q) const;
 };
 
-typedef std::set<SrcSetSlotCollectionPtr,
-                 SrcSetSlotCollectionComparator> SrcSetSlotCollectionSet;
-
+typedef std::set<SrcSetSlotCollectionPtr, SrcSetSlotCollectionComparator>
+    SrcSetSlotCollectionSet;
 
 class SrcSetSlot : public ResourceSlot {
  public:
@@ -137,8 +147,7 @@ class SrcSetSlot : public ResourceSlot {
 
  protected:
   friend class SrcSetSlotCollection;
-  SrcSetSlot(const ResourcePtr& resource,
-             SrcSetSlotCollection* parent,
+  SrcSetSlot(const ResourcePtr& resource, SrcSetSlotCollection* parent,
              int index);
 
   REFCOUNT_FRIEND_DECLARATION(SrcSetSlot);

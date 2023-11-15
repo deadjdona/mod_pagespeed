@@ -1,18 +1,21 @@
-// Copyright 2015 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/controller/named_lock_schedule_rewrite_controller.h"
 
@@ -47,8 +50,7 @@ NamedLockScheduleRewriteController::NamedLockScheduleRewriteController(
       locks_stolen_(stats->GetTimedVariable(kLocksStolen)),
       locks_released_when_not_held_(
           stats->GetTimedVariable(kLocksReleasedWhenNotHeld)),
-      locks_currently_held_(stats->GetUpDownCounter(kLocksCurrentlyHeld)) {
-}
+      locks_currently_held_(stats->GetUpDownCounter(kLocksCurrentlyHeld)) {}
 
 NamedLockScheduleRewriteController::~NamedLockScheduleRewriteController() {
   // We shouldn't actually have any locks held, but free any that are.
@@ -68,7 +70,7 @@ void NamedLockScheduleRewriteController::InitStats(Statistics* statistics) {
 NamedLockScheduleRewriteController::LockInfo*
 NamedLockScheduleRewriteController::GetLockInfo(const GoogleString& key) {
   LockInfo*& info = locks_[key];
-  if (info == NULL) {
+  if (info == nullptr) {
     info = new LockInfo();
   }
   DCHECK_GE(info->pin_count, 0);
@@ -78,10 +80,10 @@ NamedLockScheduleRewriteController::GetLockInfo(const GoogleString& key) {
 void NamedLockScheduleRewriteController::DeleteInfoIfUnused(
     LockInfo* info, const GoogleString& key) {
   DCHECK_GE(info->pin_count, 0);
-  if (info->lock.get() == nullptr && info->pin_count <= 0
-      && info->pending_callbacks.empty()) {
+  if (info->lock.get() == nullptr && info->pin_count <= 0 &&
+      info->pending_callbacks.empty()) {
     size_t num_erased = locks_.erase(key);
-    CHECK_EQ(1, num_erased);
+    CHECK_EQ(1u, num_erased);
     delete info;
   }
 }
@@ -98,7 +100,7 @@ void NamedLockScheduleRewriteController::LockObtained(Function* callback,
 
     LockInfo* info = GetLockInfo(key);
     // This lock may have been held by someone else, but it isn't any more!
-    if (info->lock.get() != NULL) {
+    if (info->lock.get() != nullptr) {
       locks_stolen_->IncBy(1);
       locks_currently_held_->Add(-1);
     }
@@ -161,10 +163,9 @@ void NamedLockScheduleRewriteController::ScheduleRewrite(
       0 /* wait_ms */, kStealMs,
       MakeFunction<NamedLockScheduleRewriteController, Function*,
                    const GoogleString, NamedLock*>(
-          this,
-          &NamedLockScheduleRewriteController::LockObtained,
-          &NamedLockScheduleRewriteController::LockFailed,
-          callback, key, named_lock));
+          this, &NamedLockScheduleRewriteController::LockObtained,
+          &NamedLockScheduleRewriteController::LockFailed, callback, key,
+          named_lock));
 }
 
 void NamedLockScheduleRewriteController::NotifyRewriteComplete(
@@ -174,12 +175,12 @@ void NamedLockScheduleRewriteController::NotifyRewriteComplete(
   // else's lock. Given that this is expected to be unlikely and the worst case
   // is redundant work, it shouldn't matter too much.
   LockInfo* info;
-  scoped_ptr<NamedLock> named_lock;
+  std::unique_ptr<NamedLock> named_lock;
   {
     ScopedMutex mutex_lock(mutex_.get());
     info = GetLockInfo(key);
     // The lock might not actually be held if it was stolen and then released.
-    if (info->lock.get() == NULL) {
+    if (info->lock.get() == nullptr) {
       locks_released_when_not_held_->IncBy(1);
       DeleteInfoIfUnused(info, key);
       return;
@@ -208,7 +209,6 @@ void NamedLockScheduleRewriteController::NotifyRewriteFailed(
   // Complete.
   this->NotifyRewriteComplete(key);
 }
-
 
 void NamedLockScheduleRewriteController::ShutDown() {
   // After ShutDown, all existing callbacks will be cancelled, requests for

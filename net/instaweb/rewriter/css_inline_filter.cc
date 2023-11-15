@@ -1,18 +1,21 @@
-// Copyright 2010 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Author: mdsteele@google.com (Matthew D. Steele)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "net/instaweb/rewriter/public/css_inline_filter.h"
 
@@ -46,21 +49,24 @@ class CssInlineFilter::Context : public InlineRewriteContext {
  public:
   Context(CssInlineFilter* filter, const GoogleUrl& base_url,
           HtmlElement* element, HtmlElement::Attribute* src)
-      : InlineRewriteContext(filter, element, src),
-        filter_(filter) {
+      : InlineRewriteContext(filter, element, src), filter_(filter) {
     base_url_.Reset(base_url);
     const char* charset = element->AttributeValue(HtmlName::kCharset);
-    if (charset != NULL) {
+    if (charset != nullptr) {
       attrs_charset_ = GoogleString(charset);
     }
   }
 
-  virtual bool ShouldInline(const ResourcePtr& resource,
-                            GoogleString* reason) const {
+  bool ShouldInline(const ResourcePtr& resource,
+                    GoogleString* reason) const override {
     return filter_->ShouldInline(resource, attrs_charset_, reason);
   }
 
-  virtual void Render() {
+  bool PolicyPermitsRendering() const override {
+    return Driver()->content_security_policy().PermitsInlineStyle();
+  }
+
+  void Render() override {
     if (num_output_partitions() < 1 ||
         !output_partition(0)->has_inlined_data()) {
       // Remove any LSC attributes as they're pointless if we don't inline.
@@ -70,18 +76,17 @@ class CssInlineFilter::Context : public InlineRewriteContext {
     InlineRewriteContext::Render();
   }
 
-  virtual void RenderInline(
-      const ResourcePtr& resource, const StringPiece& text,
-      HtmlElement* element) {
-    filter_->RenderInline(resource, *(output_partition(0)),
-                          base_url_, text, element);
+  void RenderInline(const ResourcePtr& resource, const StringPiece& text,
+                    HtmlElement* element) override {
+    filter_->RenderInline(resource, *(output_partition(0)), base_url_, text,
+                          element);
   }
 
-  virtual ResourcePtr CreateResource(const char* url, bool* is_authorized) {
+  ResourcePtr CreateResource(const char* url, bool* is_authorized) override {
     return filter_->CreateResource(url, is_authorized);
   }
 
-  virtual const char* id() const { return filter_->id_; }
+  const char* id() const override { return filter_->id_; }
   RewriteDriver::InputRole InputRole() const override {
     return RewriteDriver::InputRole::kStyle;
   }
@@ -97,7 +102,8 @@ class CssInlineFilter::Context : public InlineRewriteContext {
 CssInlineFilter::CssInlineFilter(RewriteDriver* driver)
     : CommonFilter(driver),
       id_(RewriteOptions::kCssInlineId),
-      size_threshold_bytes_(driver->options()->css_inline_max_bytes()) {
+      size_threshold_bytes_(driver->options()->css_inline_max_bytes()),
+      in_body_(false) {
   Statistics* stats = server_context()->statistics();
   num_css_inlined_ = stats->GetVariable(kNumCssInlined);
 }
@@ -106,18 +112,24 @@ void CssInlineFilter::InitStats(Statistics* statistics) {
   statistics->AddVariable(kNumCssInlined);
 }
 
-void CssInlineFilter::StartDocumentImpl() {
-}
+void CssInlineFilter::StartDocumentImpl() { in_body_ = false; }
 
 CssInlineFilter::~CssInlineFilter() {}
 
+void CssInlineFilter::StartElementImpl(HtmlElement* element) {
+  if (element->keyword() == HtmlName::kBody) {
+    in_body_ = true;
+  }
+}
+
 void CssInlineFilter::EndElementImpl(HtmlElement* element) {
   // Don't inline if the CSS element is under <noscript>.
-  if (noscript_element() != NULL) {
+  if (noscript_element() != nullptr) {
     return;
   }
-  HtmlElement::Attribute* href = NULL;
-  const char* media = NULL;
+
+  HtmlElement::Attribute* href = nullptr;
+  const char* media = nullptr;
   if (CssTagScanner::ParseCssElement(element, &href, &media) &&
       !driver()->HasChildrenInFlushWindow(element)) {
     if (driver()->is_amp_document()) {
@@ -138,6 +150,19 @@ void CssInlineFilter::EndElementImpl(HtmlElement* element) {
           "CSS not inlined because media does not match screen", element);
       return;
     }
+
+    // Dont inline if style <link> element is in html body
+    // with pedantic filter enabled AND
+    // move_css_to_head is not enabled.
+    // This is to maintain w3c validation since style element is
+    // not recommended in html body. Issue fix #1153.
+    if (in_body_ && driver()->options()->Enabled(RewriteOptions::kPedantic) &&
+        !driver()->options()->Enabled(RewriteOptions::kMoveCssToHead)) {
+      driver()->InsertDebugComment(
+          "CSS not inlined because style link element in html body", element);
+      return;
+    }
+
     // Ask the LSC filter to work out how to handle this element. A return
     // value of true means we don't have to rewrite it so can skip that.
     // The state is carried forward to after we initiate rewriting since
@@ -154,10 +179,9 @@ void CssInlineFilter::EndElementImpl(HtmlElement* element) {
       // If we're rewriting we need the LSC filter to add the URL as an
       // attribute so that it knows to insert the LSC specific javascript.
       if (initiated) {
-        LocalStorageCacheFilter::AddStorableResource(href->DecodedValueOrNull(),
-                                                     driver(),
-                                                     true /* ignore cookie */,
-                                                     element, &state);
+        LocalStorageCacheFilter::AddStorableResource(
+            href->DecodedValueOrNull(), driver(), true /* ignore cookie */,
+            element, &state);
       }
     }
   }
@@ -165,8 +189,8 @@ void CssInlineFilter::EndElementImpl(HtmlElement* element) {
 
 ResourcePtr CssInlineFilter::CreateResource(const char* url,
                                             bool* is_authorized) {
-  return CreateInputResource(
-      url, RewriteDriver::InputRole::kStyle, is_authorized);
+  return CreateInputResource(url, RewriteDriver::InputRole::kStyle,
+                             is_authorized);
 }
 
 bool CssInlineFilter::HasClosingStyleTag(StringPiece contents) {
@@ -180,8 +204,7 @@ bool CssInlineFilter::ShouldInline(const ResourcePtr& resource,
   StringPiece contents(resource->ExtractUncompressedContents());
   if (contents.size() > size_threshold_bytes_) {
     *reason = StrCat("CSS not inlined since it's bigger than ",
-                     Integer64ToString(size_threshold_bytes_),
-                     " bytes");
+                     Integer64ToString(size_threshold_bytes_), " bytes");
     return false;
   }
   // Also don't inline if it looks gzipped.
@@ -221,8 +244,8 @@ bool CssInlineFilter::ShouldInline(const ResourcePtr& resource,
     if (has_non_ascii) {
       *reason = StrCat(
           "CSS not inlined due to apparent charset incompatibility;"
-          " we think the HTML is ", htmls_charset,
-          " while the CSS is ", css_charset);
+          " we think the HTML is ",
+          htmls_charset, " while the CSS is ", css_charset);
       return false;
     }
   }
@@ -247,9 +270,8 @@ void CssInlineFilter::RenderInline(const ResourcePtr& resource,
   StringWriter writer(&rewritten_contents);
   GoogleUrl resource_url(resource->url());
   bool resolved_ok = true;
-  switch (driver()->ResolveCssUrls(
-      resource_url, base_url.Spec(), clean_contents,
-      &writer, message_handler)) {
+  switch (driver()->ResolveCssUrls(resource_url, base_url.Spec(),
+                                   clean_contents, &writer, message_handler)) {
     case RewriteDriver::kNoResolutionNeeded:
       // We don't need to absolutify URLs if input directory is same as base.
       if (!writer.Write(clean_contents, message_handler)) {
@@ -276,9 +298,8 @@ void CssInlineFilter::RenderInline(const ResourcePtr& resource,
     DCHECK(false) << "!driver()->ReplaceNode(element, style_element)";
     return;
   }
-  driver()->AppendChild(style_element,
-                        driver()->NewCharactersNode(element,
-                                                    rewritten_contents));
+  driver()->AppendChild(
+      style_element, driver()->NewCharactersNode(element, rewritten_contents));
 
   // Copy over most attributes from the original link, discarding those that
   // we convert (href, rel), and dropping those that are irrelevant (type).

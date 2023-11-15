@@ -1,19 +1,22 @@
-// Copyright 2012 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: morlovich@google.com (Maksim Orlovich)
-//
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 // This fetcher routes requests to hosts that are not explicitly mentioned in
 // the DomainLawyer towards our own IP, as extracted from the incoming
 // connection.
@@ -44,18 +47,16 @@ class LoopbackRouteFetcher : public UrlAsyncFetcher {
   // (As this fetcher may produce requests that need to connect to some IP
   //  but have a Host: and URL from somewhere else).
   LoopbackRouteFetcher(const RewriteOptions* options,
-                       const GoogleString& own_ip,
-                       int own_port,
+                       const GoogleString& own_ip, int own_port,
                        UrlAsyncFetcher* backend_fetcher);
-  virtual ~LoopbackRouteFetcher();
+  ~LoopbackRouteFetcher() override;
 
-  virtual bool SupportsHttps() const {
+  bool SupportsHttps() const override {
     return backend_fetcher_->SupportsHttps();
   }
 
-  virtual void Fetch(const GoogleString& url,
-                     MessageHandler* message_handler,
-                     AsyncFetch* fetch);
+  void Fetch(const GoogleString& url, MessageHandler* message_handler,
+             AsyncFetch* fetch) override;
 
   // Returns true if the given address is an IPv4 or IPv6 loopback.
   static bool IsLoopbackAddr(const apr_sockaddr_t* addr);

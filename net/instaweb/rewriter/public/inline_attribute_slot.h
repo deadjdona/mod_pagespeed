@@ -1,20 +1,21 @@
 /*
- * Copyright 2015 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_INLINE_ATTRIBUTE_SLOT_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_INLINE_ATTRIBUTE_SLOT_H_
@@ -25,15 +26,13 @@ namespace net_instaweb {
 
 class InlineAttributeSlot : public ResourceSlot {
  public:
-  InlineAttributeSlot(const ResourcePtr& resource,
-                      HtmlElement* element,
-                      HtmlElement::Attribute* attribute,
-                      StringPiece location);
-  virtual ~InlineAttributeSlot();
-  virtual HtmlElement* element() const { return element_; }
-  virtual GoogleString LocationString() const { return location_; }
+  InlineAttributeSlot(const ResourcePtr& resource, HtmlElement* element,
+                      HtmlElement::Attribute* attribute, StringPiece location);
+  ~InlineAttributeSlot() override;
+  HtmlElement* element() const override { return element_; }
+  GoogleString LocationString() const override { return location_; }
 
-  virtual void Render();
+  void Render() override;
 
   const HtmlElement::Attribute* attribute() const { return attribute_; }
 
@@ -53,8 +52,8 @@ class InlineAttributeSlotComparator {
                   const InlineAttributeSlotPtr& q) const;
 };
 
-typedef std::set<InlineAttributeSlotPtr,
-                 InlineAttributeSlotComparator> InlineAttributeSlotSet;
+typedef std::set<InlineAttributeSlotPtr, InlineAttributeSlotComparator>
+    InlineAttributeSlotSet;
 
 }  // namespace net_instaweb
 

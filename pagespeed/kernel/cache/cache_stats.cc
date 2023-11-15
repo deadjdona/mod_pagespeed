@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/cache/cache_stats.h"
 
@@ -42,29 +43,27 @@ const char kMisses[] = "_misses";
 // TODO(jmarantz): tie this to CacheBatcher::kDefaultMaxQueueSize,
 // but for now I want to get discrete counts in each bucket.
 const int kGetCountHistogramMaxValue = 500;
-const int kSizeHistogramMaxValue = 5*1000*1000;
-const int kLatencyHistogramMaxValueUs = 1*1000*1000;
+const int kSizeHistogramMaxValue = 5 * 1000 * 1000;
+const int kLatencyHistogramMaxValueUs = 1 * 1000 * 1000;
 
 }  // namespace
 
 namespace net_instaweb {
 
-CacheStats::CacheStats(StringPiece prefix,
-                       CacheInterface* cache,
-                       Timer* timer,
+CacheStats::CacheStats(StringPiece prefix, CacheInterface* cache, Timer* timer,
                        Statistics* statistics)
     : cache_(cache),
       timer_(timer),
-      get_count_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kGetCountHistogram))),
-      hit_latency_us_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kHitLatencyHistogram))),
-      insert_latency_us_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kInsertLatencyHistogram))),
-      insert_size_bytes_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kInsertSizeHistogram))),
-      lookup_size_bytes_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kLookupSizeHistogram))),
+      get_count_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kGetCountHistogram))),
+      hit_latency_us_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kHitLatencyHistogram))),
+      insert_latency_us_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kInsertLatencyHistogram))),
+      insert_size_bytes_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kInsertSizeHistogram))),
+      lookup_size_bytes_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kLookupSizeHistogram))),
       deletes_(statistics->GetVariable(StrCat(prefix, kDeletes))),
       hits_(statistics->GetVariable(StrCat(prefix, kHits))),
       inserts_(statistics->GetVariable(StrCat(prefix, kInserts))),
@@ -77,8 +76,7 @@ CacheStats::CacheStats(StringPiece prefix,
   insert_latency_us_histogram_->SetMaxValue(kLatencyHistogramMaxValueUs);
 }
 
-CacheStats::~CacheStats() {
-}
+CacheStats::~CacheStats() {}
 
 GoogleString CacheStats::FormatName(StringPiece prefix, StringPiece cache) {
   return StrCat("Stats(prefix=", prefix, ",cache=", cache, ")");
@@ -104,19 +102,15 @@ void CacheStats::InitStats(StringPiece prefix, Statistics* statistics) {
 
 class CacheStats::StatsCallback : public DelegatingCacheCallback {
  public:
-  StatsCallback(CacheStats* stats,
-                Timer* timer,
+  StatsCallback(CacheStats* stats, Timer* timer,
                 CacheInterface::Callback* callback)
-      : DelegatingCacheCallback(callback),
-        stats_(stats),
-        timer_(timer) {
+      : DelegatingCacheCallback(callback), stats_(stats), timer_(timer) {
     start_time_us_ = timer->NowUs();
   }
 
-  virtual ~StatsCallback() {
-  }
+  ~StatsCallback() override {}
 
-  virtual void Done(CacheInterface::KeyState state) {
+  void Done(CacheInterface::KeyState state) override {
     if (state == CacheInterface::kAvailable) {
       int64 end_time_us = timer_->NowUs();
       stats_->hits_->Add(1);
@@ -153,8 +147,8 @@ void CacheStats::MultiGet(MultiGetRequest* request) {
     get_count_histogram_->Add(request->size());
     for (int i = 0, n = request->size(); i < n; ++i) {
       KeyCallback* key_callback = &(*request)[i];
-      key_callback->callback = new StatsCallback(this, timer_,
-                                                 key_callback->callback);
+      key_callback->callback =
+          new StatsCallback(this, timer_, key_callback->callback);
     }
     cache_->MultiGet(request);
   }

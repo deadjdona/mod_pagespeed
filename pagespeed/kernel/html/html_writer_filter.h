@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_HTML_HTML_WRITER_FILTER_H_
 #define PAGESPEED_KERNEL_HTML_HTML_WRITER_FILTER_H_
@@ -38,27 +39,27 @@ class HtmlWriterFilter : public HtmlFilter {
   explicit HtmlWriterFilter(HtmlParse* html_parse);
 
   void set_writer(Writer* writer) { writer_ = writer; }
-  virtual ~HtmlWriterFilter();
+  ~HtmlWriterFilter() override;
 
-  virtual void StartDocument();
-  virtual void EndDocument();
-  virtual void StartElement(HtmlElement* element);
-  virtual void EndElement(HtmlElement* element);
-  virtual void Cdata(HtmlCdataNode* cdata);
-  virtual void Comment(HtmlCommentNode* comment);
-  virtual void IEDirective(HtmlIEDirectiveNode* directive);
-  virtual void Characters(HtmlCharactersNode* characters);
-  virtual void Directive(HtmlDirectiveNode* directive);
-  virtual void Flush();
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void StartDocument() override;
+  void EndDocument() override;
+  void StartElement(HtmlElement* element) override;
+  void EndElement(HtmlElement* element) override;
+  void Cdata(HtmlCdataNode* cdata) override;
+  void Comment(HtmlCommentNode* comment) override;
+  void IEDirective(HtmlIEDirectiveNode* directive) override;
+  void Characters(HtmlCharactersNode* characters) override;
+  void Directive(HtmlDirectiveNode* directive) override;
+  void Flush() override;
+  void DetermineEnabled(GoogleString* disabled_reason) override;
   // This filter will not change urls.
-  virtual bool CanModifyUrls() { return false; }
+  bool CanModifyUrls() override { return false; }
   ScriptUsage GetScriptUsage() const override { return kNeverInjectsScripts; }
 
   void set_max_column(int max_column) { max_column_ = max_column; }
   void set_case_fold(bool case_fold) { case_fold_ = case_fold; }
 
-  virtual const char* Name() const { return "HtmlWriter"; }
+  const char* Name() const override { return "HtmlWriter"; }
 
  protected:
   // Clear various variables for rewriting a new html file.

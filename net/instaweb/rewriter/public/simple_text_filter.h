@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_SIMPLE_TEXT_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_SIMPLE_TEXT_FILTER_H_
@@ -48,8 +49,7 @@ class SimpleTextFilter : public RewriteFilter {
   class Rewriter : public RefCounted<Rewriter> {
    public:
     Rewriter() {}
-    virtual bool RewriteText(const StringPiece& url,
-                             const StringPiece& in,
+    virtual bool RewriteText(const StringPiece& url, const StringPiece& in,
                              GoogleString* out,
                              ServerContext* server_context) = 0;
     virtual HtmlElement::Attribute* FindResourceAttribute(
@@ -76,16 +76,17 @@ class SimpleTextFilter : public RewriteFilter {
    public:
     Context(const RewriterPtr& rewriter, RewriteDriver* driver,
             RewriteContext* parent);
-    virtual ~Context();
-    virtual void RewriteSingle(
-        const ResourcePtr& input, const OutputResourcePtr& output);
+    ~Context() override;
+    void RewriteSingle(const ResourcePtr& input,
+                       const OutputResourcePtr& output) override;
 
    protected:
-    virtual const char* id() const { return rewriter_->id(); }
-    virtual OutputResourceKind kind() const { return rewriter_->kind(); }
-    virtual bool OptimizationOnly() const {
+    const char* id() const override { return rewriter_->id(); }
+    OutputResourceKind kind() const override { return rewriter_->kind(); }
+    bool OptimizationOnly() const override {
       return rewriter_->OptimizationOnly();
     }
+    bool PolicyPermitsRendering() const override { return true; }
 
    private:
     RewriterPtr rewriter_;
@@ -94,20 +95,20 @@ class SimpleTextFilter : public RewriteFilter {
   };
 
   SimpleTextFilter(Rewriter* rewriter, RewriteDriver* driver);
-  virtual ~SimpleTextFilter();
+  ~SimpleTextFilter() override;
 
-  virtual void StartDocumentImpl() {}
-  virtual void EndElementImpl(HtmlElement* element) {}
-  virtual void StartElementImpl(HtmlElement* element);
+  void StartDocumentImpl() override {}
+  void EndElementImpl(HtmlElement* element) override {}
+  void StartElementImpl(HtmlElement* element) override;
 
-  virtual RewriteContext* MakeRewriteContext();
-  virtual RewriteContext* MakeNestedRewriteContext(
-      RewriteContext* parent, const ResourceSlotPtr& slot);
+  RewriteContext* MakeRewriteContext() override;
+  RewriteContext* MakeNestedRewriteContext(
+      RewriteContext* parent, const ResourceSlotPtr& slot) override;
 
  protected:
-  virtual const char* id() const { return rewriter_->id(); }
-  virtual const char* Name() const { return rewriter_->name(); }
-  virtual bool ComputeOnTheFly() const {
+  const char* id() const override { return rewriter_->id(); }
+  const char* Name() const override { return rewriter_->name(); }
+  bool ComputeOnTheFly() const override {
     return rewriter_->kind() == kOnTheFlyResource;
   }
 

@@ -1,18 +1,21 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/apache/apache_config.h"
 
@@ -24,7 +27,6 @@ namespace net_instaweb {
 
 namespace {
 
-const char kModPagespeedStatisticsHandlerPath[] = "/mod_pagespeed_statistics";
 const char kProxyAuth[] = "ProxyAuth";
 const char kForceBuffering[] = "ForceBuffering";
 const char kProxyAllRequests[] = "ExperimentalProxyAllRequests";
@@ -58,19 +60,17 @@ ApacheConfig::ApacheConfig(ThreadSystem* thread_system)
   Init();
 }
 
-ApacheConfig::~ApacheConfig() {
-}
+ApacheConfig::~ApacheConfig() {}
 
 void ApacheConfig::Init() {
-  DCHECK(apache_properties_ != NULL)
+  DCHECK(apache_properties_ != nullptr)
       << "Call ApacheConfig::Initialize() before construction";
   InitializeOptions(apache_properties_);
 }
 
 void ApacheConfig::AddProperties() {
   AddApacheProperty(
-      "", &ApacheConfig::proxy_auth_, "prxa",
-      kProxyAuth,
+      "", &ApacheConfig::proxy_auth_, "prxa", kProxyAuth,
       "CookieName[=Value][:RedirectUrl] -- checks proxy requests for "
       "CookieName.  If CookieValue is specified, checks for that.  If "
       "Redirect is specified, a failure results in a redirection to that URL "
@@ -78,8 +78,7 @@ void ApacheConfig::AddProperties() {
       false /* safe_to_print */);
 
   AddApacheProperty(
-      false, &ApacheConfig::force_buffering_, "afb",
-      kForceBuffering,
+      false, &ApacheConfig::force_buffering_, "afb", kForceBuffering,
       "Force buffering of non-html fetch responses rather than streaming",
       true /* safe_to_print */);
 
@@ -99,14 +98,10 @@ void ApacheConfig::AddProperties() {
                         RewriteOptions::kDirectoryScope);
   AddDeprecatedProperty("StatisticsLoggingFile",
                         RewriteOptions::kDirectoryScope);
-  AddDeprecatedProperty("DisableForBots",
-                        RewriteOptions::kDirectoryScope);
-  AddDeprecatedProperty("GeneratedFilePrefix",
-                        RewriteOptions::kServerScope);
-  AddDeprecatedProperty("InheritVHostConfig",
-                        RewriteOptions::kServerScope);
-  AddDeprecatedProperty("FetchFromModSpdy",
-                        RewriteOptions::kServerScope);
+  AddDeprecatedProperty("DisableForBots", RewriteOptions::kDirectoryScope);
+  AddDeprecatedProperty("GeneratedFilePrefix", RewriteOptions::kServerScope);
+  AddDeprecatedProperty("InheritVHostConfig", RewriteOptions::kServerScope);
+  AddDeprecatedProperty("FetchFromModSpdy", RewriteOptions::kServerScope);
   AddDeprecatedProperty("NumShards", RewriteOptions::kServerScope);
   AddDeprecatedProperty("UrlPrefix", RewriteOptions::kServerScope);
 
@@ -121,7 +116,7 @@ void ApacheConfig::AddProperties() {
   // Instantiation of the options with a null thread system wouldn't usually be
   // safe but it's ok here because we're only updating the static properties on
   // process startup.  We won't have a thread-system yet or multiple threads.
-  ApacheConfig config("dummy_options", NULL);
+  ApacheConfig config("dummy_options", nullptr);
   config.set_default_x_header_value(kModPagespeedVersion);
 }
 
@@ -139,20 +134,20 @@ ApacheConfig* ApacheConfig::NewOptions() const {
 
 const ApacheConfig* ApacheConfig::DynamicCast(const RewriteOptions* instance) {
   const ApacheConfig* config = dynamic_cast<const ApacheConfig*>(instance);
-  DCHECK(config != NULL);
+  DCHECK(config != nullptr);
   return config;
 }
 
 ApacheConfig* ApacheConfig::DynamicCast(RewriteOptions* instance) {
   ApacheConfig* config = dynamic_cast<ApacheConfig*>(instance);
-  DCHECK(config != NULL);
+  DCHECK(config != nullptr);
   return config;
 }
 
 void ApacheConfig::Merge(const RewriteOptions& src) {
   SystemRewriteOptions::Merge(src);
   const ApacheConfig* asrc = DynamicCast(&src);
-  CHECK(asrc != NULL);
+  CHECK(asrc != nullptr);
 
   // Can't use Merge() since we don't have names here.
   measurement_proxy_root_.MergeHelper(&asrc->measurement_proxy_root_);
@@ -160,8 +155,8 @@ void ApacheConfig::Merge(const RewriteOptions& src) {
 }
 
 RewriteOptions::OptionSettingResult ApacheConfig::ParseAndSetOptionFromName2(
-    StringPiece name, StringPiece arg1, StringPiece arg2,
-    GoogleString* msg, MessageHandler* handler) {
+    StringPiece name, StringPiece arg1, StringPiece arg2, GoogleString* msg,
+    MessageHandler* handler) {
   OptionSettingResult result = SystemRewriteOptions::ParseAndSetOptionFromName2(
       name, arg1, arg2, msg, handler);
   if (result == RewriteOptions::kOptionNameUnknown) {

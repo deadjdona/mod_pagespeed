@@ -1,31 +1,32 @@
 /*
- * Copyright 2015 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: kspoelstra@we-amp.com (Kees Spoelstra)
 
 #include "net/instaweb/rewriter/public/strip_subresource_hints_filter.h"
 
+#include "net/instaweb/rewriter/public/domain_lawyer.h"
+#include "net/instaweb/rewriter/public/rewrite_driver.h"
+#include "net/instaweb/rewriter/public/rewrite_options.h"
 #include "pagespeed/kernel/base/scoped_ptr.h"
 #include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/html/html_element.h"
 #include "pagespeed/kernel/html/html_name.h"
 #include "pagespeed/kernel/http/google_url.h"
-#include "net/instaweb/rewriter/public/domain_lawyer.h"
-#include "net/instaweb/rewriter/public/rewrite_driver.h"
-#include "net/instaweb/rewriter/public/rewrite_options.h"
 
 namespace net_instaweb {
 
@@ -35,13 +36,12 @@ StripSubresourceHintsFilter::StripSubresourceHintsFilter(RewriteDriver* driver)
       remove_script_(false),
       remove_style_(false),
       remove_image_(false),
-      remove_any_(false) {
-}
+      remove_any_(false) {}
 
-StripSubresourceHintsFilter::~StripSubresourceHintsFilter() { }
+StripSubresourceHintsFilter::~StripSubresourceHintsFilter() {}
 
 void StripSubresourceHintsFilter::StartDocument() {
-  const RewriteOptions *options = driver_->options();
+  const RewriteOptions* options = driver_->options();
   remove_script_ = driver_->can_modify_urls() && !options->js_preserve_urls();
   remove_style_ = driver_->can_modify_urls() && !options->css_preserve_urls();
   remove_image_ = driver_->can_modify_urls() && !options->image_preserve_urls();
@@ -84,8 +84,8 @@ bool StripSubresourceHintsFilter::ShouldStrip(HtmlElement* element) {
 
 void StripSubresourceHintsFilter::StartElement(HtmlElement* element) {
   if (ShouldStrip(element)) {
-    const RewriteOptions *options = driver_->options();
-    const char *resource_url = element->AttributeValue(HtmlName::kHref);
+    const RewriteOptions* options = driver_->options();
+    const char* resource_url = element->AttributeValue(HtmlName::kHref);
     if (!resource_url) {
       // There's either no href attr, or one that we can't decode (utf8 etc).
       // One way this could happen is if we have a url-encoded utf8 url in an
@@ -96,8 +96,8 @@ void StripSubresourceHintsFilter::StartElement(HtmlElement* element) {
       const GoogleUrl& base_url = driver_->decoded_base_url();
       GoogleUrl resolved_resource_url(base_url, resource_url);
       if (options->IsAllowed(resolved_resource_url.Spec()) &&
-          options->domain_lawyer()->IsDomainAuthorized(
-              base_url, resolved_resource_url)) {
+          options->domain_lawyer()->IsDomainAuthorized(base_url,
+                                                       resolved_resource_url)) {
         driver_->DeleteNode(element);
       }
     }

@@ -1,34 +1,32 @@
-/**
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Copyright 2007 Google Inc. All Rights Reserved.
-// Author: yian@google.com (Yi-an Huang)
-
-#include "webutil/css/identifier.h"
+#include "third_party/css_parser/src/webutil/css/identifier.h"
 
 #include <string>
 
-#include "testing/base/public/googletest.h"
-#include "testing/base/public/gunit.h"
-#include "webutil/css/string.h"
+#include "test/pagespeed/kernel/base/gtest.h"
+#include "third_party/css_parser/src/webutil/css/string.h"
 
 namespace {
 
-class IdentifierTest : public testing::Test {
-};
+class IdentifierTest : public testing::Test {};
 
 TEST_F(IdentifierTest, IdentFromText) {
   UnicodeText s = UTF8ToUnicodeText(string("Inherit"), true);
@@ -38,12 +36,10 @@ TEST_F(IdentifierTest, IdentFromText) {
 }
 
 TEST_F(IdentifierTest, TextFromIdent) {
-  EXPECT_EQ("inherit",
-             UnicodeTextToUTF8(Css::Identifier::TextFromIdent(
-                 Css::Identifier::INHERIT)));
-  EXPECT_EQ("OTHER",
-             UnicodeTextToUTF8(Css::Identifier::TextFromIdent(
-                 Css::Identifier::OTHER)));
+  EXPECT_EQ("inherit", UnicodeTextToUTF8(Css::Identifier::TextFromIdent(
+                           Css::Identifier::INHERIT)));
+  EXPECT_EQ("OTHER", UnicodeTextToUTF8(Css::Identifier::TextFromIdent(
+                         Css::Identifier::OTHER)));
 }
 
 TEST_F(IdentifierTest, UnicodeText) {
@@ -56,8 +52,8 @@ TEST_F(IdentifierTest, UnicodeText) {
 
 TEST_F(IdentifierTest, Inverses) {
   for (int i = 0; i < Css::Identifier::OTHER; ++i) {
-    UnicodeText s = Css::Identifier::TextFromIdent(
-        static_cast<Css::Identifier::Ident>(i));
+    UnicodeText s =
+        Css::Identifier::TextFromIdent(static_cast<Css::Identifier::Ident>(i));
     EXPECT_EQ(static_cast<Css::Identifier::Ident>(i),
               Css::Identifier::IdentFromText(s));
   }

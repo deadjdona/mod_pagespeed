@@ -1,18 +1,22 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //         lsong@google.com (Libo Song)
 
 #include "net/instaweb/http/public/sync_fetcher_adapter_callback.h"
@@ -64,11 +68,9 @@ SyncFetcherAdapterCallback::SyncFetcherAdapterCallback(
       done_(false),
       success_(false),
       released_(false),
-      writer_(new ProtectedWriter(this, writer)) {
-}
+      writer_(new ProtectedWriter(this, writer)) {}
 
-SyncFetcherAdapterCallback::~SyncFetcherAdapterCallback() {
-}
+SyncFetcherAdapterCallback::~SyncFetcherAdapterCallback() {}
 
 void SyncFetcherAdapterCallback::HandleDone(bool success) {
   mutex_->Lock();
@@ -125,9 +127,7 @@ bool SyncFetcherAdapterCallback::LockIfNotReleased() {
   }
 }
 
-void SyncFetcherAdapterCallback::Unlock() {
-  mutex_->Unlock();
-}
+void SyncFetcherAdapterCallback::Unlock() { mutex_->Unlock(); }
 
 void SyncFetcherAdapterCallback::TimedWait(int64 timeout_ms) {
   mutex_->DCheckLocked();

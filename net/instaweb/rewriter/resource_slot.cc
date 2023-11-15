@@ -1,22 +1,25 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
-
 #include "net/instaweb/rewriter/public/resource_slot.h"
+
+#include <memory>
 
 #include "base/logging.h"
 #include "net/instaweb/rewriter/public/resource.h"
@@ -28,8 +31,7 @@
 
 namespace net_instaweb {
 
-ResourceSlot::~ResourceSlot() {
-}
+ResourceSlot::~ResourceSlot() {}
 
 void ResourceSlot::SetResource(const ResourcePtr& resource) {
   resource_ = ResourcePtr(resource);
@@ -37,20 +39,21 @@ void ResourceSlot::SetResource(const ResourcePtr& resource) {
 
 bool ResourceSlot::DirectSetUrl(const StringPiece& url) {
   LOG(DFATAL) << "Trying to direct-set a URL on a slot that does not "
-      "support it: " << LocationString();
+                 "support it: "
+              << LocationString();
   return false;
 }
 
 void ResourceSlot::ReportInput(const InputInfo& input) {
   if (inputs_ == nullptr) {
-    inputs_.reset(new std::vector<InputInfo>);
+    inputs_ = std::make_unique<std::vector<InputInfo>>();
   }
   inputs_->push_back(input);
 }
 
 RewriteContext* ResourceSlot::LastContext() const {
   if (contexts_.empty()) {
-    return NULL;
+    return nullptr;
   }
   return contexts_.back();
 }
@@ -86,15 +89,11 @@ GoogleString ResourceSlot::RelativizeOrPassthrough(
 
 NullResourceSlot::NullResourceSlot(const ResourcePtr& resource,
                                    StringPiece location)
-    : ResourceSlot(resource),
-      location_(location.data(), location.size()) {
-}
+    : ResourceSlot(resource), location_(location.data(), location.size()) {}
 
-NullResourceSlot::~NullResourceSlot() {
-}
+NullResourceSlot::~NullResourceSlot() {}
 
-FetchResourceSlot::~FetchResourceSlot() {
-}
+FetchResourceSlot::~FetchResourceSlot() {}
 
 void FetchResourceSlot::Render() {
   LOG(DFATAL) << "FetchResourceSlot::Render should never be called";
@@ -120,19 +119,17 @@ HtmlResourceSlot::HtmlResourceSlot(const ResourcePtr& resource,
       // Note: these need to be deep-copied in case we run as a detached
       // rewrite, in which case element_ may be dead.
       begin_line_number_(element->begin_line_number()),
-      end_line_number_(element->end_line_number()) {
-}
+      end_line_number_(element->end_line_number()) {}
 
-HtmlResourceSlot::~HtmlResourceSlot() {
-}
+HtmlResourceSlot::~HtmlResourceSlot() {}
 
 void HtmlResourceSlot::Render() {
   if (disable_rendering()) {
     return;  // nothing done here.
   } else if (should_delete_element()) {
-    if (element_ != NULL) {
+    if (element_ != nullptr) {
       driver_->DeleteNode(element_);
-      element_ = NULL;
+      element_ = nullptr;
     }
   } else if (!preserve_urls()) {
     DirectSetUrl(RelativizeOrPassthrough(driver_->options(), resource()->url(),
@@ -146,9 +143,8 @@ GoogleString HtmlResourceSlot::LocationString() const {
   if (begin_line_number_ == end_line_number_) {
     return StrCat(driver_->id(), ":", IntegerToString(begin_line_number_));
   } else {
-    return StrCat(driver_->id(), ":",
-                  IntegerToString(begin_line_number_),
-                  "-", IntegerToString(end_line_number_));
+    return StrCat(driver_->id(), ":", IntegerToString(begin_line_number_), "-",
+                  IntegerToString(end_line_number_));
   }
 }
 
@@ -157,8 +153,8 @@ bool HtmlResourceSlot::DirectSetUrl(const StringPiece& url) {
   if (!resource()->is_authorized_domain()) {
     return false;
   }
-  DCHECK(attribute_ != NULL);
-  if (attribute_ != NULL) {
+  DCHECK(attribute_ != nullptr);
+  if (attribute_ != nullptr) {
     attribute_->SetValue(url);
     return true;
   }

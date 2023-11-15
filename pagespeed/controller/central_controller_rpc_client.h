@@ -1,18 +1,21 @@
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_CONTROLLER_CENTRAL_CONTROLLER_RPC_CLIENT_H_
 #define PAGESPEED_CONTROLLER_CENTRAL_CONTROLLER_RPC_CLIENT_H_
@@ -20,20 +23,19 @@
 #include <memory>
 #include <unordered_set>
 
-#include "base/macros.h"
-#include "pagespeed/controller/controller.grpc.pb.h"
 #include "pagespeed/controller/central_controller.h"
+#include "pagespeed/controller/controller.grpc.pb.h"
 #include "pagespeed/controller/expensive_operation_callback.h"
 #include "pagespeed/controller/schedule_rewrite_callback.h"
-#include "pagespeed/kernel/base/basictypes.h"
-#include "pagespeed/kernel/util/grpc.h"
 #include "pagespeed/kernel/base/abstract_mutex.h"
+#include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/statistics.h"
 #include "pagespeed/kernel/base/string.h"
-#include "pagespeed/kernel/base/timer.h"
 #include "pagespeed/kernel/base/thread_annotations.h"
 #include "pagespeed/kernel/base/thread_system.h"
+#include "pagespeed/kernel/base/timer.h"
+#include "pagespeed/kernel/util/grpc.h"
 
 namespace net_instaweb {
 
@@ -56,7 +58,7 @@ class CentralControllerRpcClient : public CentralController {
                              int panic_threshold, ThreadSystem* thread_system,
                              Timer* timer, Statistics* statistics,
                              MessageHandler* handler);
-  virtual ~CentralControllerRpcClient();
+  ~CentralControllerRpcClient() override;
 
   // CentralController implementation.
   void ScheduleExpensiveOperation(
@@ -105,7 +107,7 @@ class CentralControllerRpcClient : public CentralController {
 
   std::unique_ptr<::grpc::CompletionQueue> queue_;
   std::shared_ptr<::grpc::ChannelInterface> channel_;
-  std::unique_ptr<grpc::CentralControllerRpcService::Stub> stub_;
+  std::unique_ptr<CentralControllerRpcService::Stub> stub_;
 
   // This must be last so that it's destructed first.
   std::unique_ptr<GrpcClientThread> client_thread_ GUARDED_BY(mutex_);

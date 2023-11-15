@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jkarlin@google.com (Josh Karlin)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_FAKE_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_FAKE_FILTER_H_
@@ -49,18 +50,19 @@ class FakeFilter : public RewriteFilter {
             ResourceContext* resource_context)
         : SingleRewriteContext(driver, parent, resource_context),
           filter_(filter) {}
-    virtual ~Context();
+    ~Context() override;
 
     void RewriteSingle(const ResourcePtr& input,
-                       const OutputResourcePtr& output);
+                       const OutputResourcePtr& output) override;
 
-    virtual void DoRewriteSingle(
-        const ResourcePtr input, OutputResourcePtr output);
+    virtual void DoRewriteSingle(const ResourcePtr input,
+                                 OutputResourcePtr output);
     GoogleString UserAgentCacheKey(
-        const ResourceContext* resource_context) const;
+        const ResourceContext* resource_context) const override;
 
-    virtual const char* id() const { return filter_->id(); }
-    virtual OutputResourceKind kind() const { return filter_->kind(); }
+    const char* id() const override { return filter_->id(); }
+    OutputResourceKind kind() const override { return filter_->kind(); }
+    bool PolicyPermitsRendering() const override { return true; }
 
    private:
     FakeFilter* filter_;
@@ -78,20 +80,20 @@ class FakeFilter : public RewriteFilter {
         num_calls_to_encode_user_agent_(0),
         category_(category) {}
 
-  virtual ~FakeFilter();
+  ~FakeFilter() override;
 
-  virtual void StartDocumentImpl() {}
-  virtual void EndElementImpl(HtmlElement* element) {}
-  virtual void StartElementImpl(HtmlElement* element);
-  virtual RewriteContext* MakeRewriteContext() {
+  void StartDocumentImpl() override {}
+  void EndElementImpl(HtmlElement* element) override {}
+  void StartElementImpl(HtmlElement* element) override;
+  RewriteContext* MakeRewriteContext() override {
     return MakeFakeContext(driver(), NULL /* not nested */, NULL);
   }
-  virtual RewriteContext* MakeNestedRewriteContext(RewriteContext* parent,
-                                                   const ResourceSlotPtr& slot);
+  RewriteContext* MakeNestedRewriteContext(
+      RewriteContext* parent, const ResourceSlotPtr& slot) override;
   // Factory for context so a subclass can override FakeFilter::Context.
-  virtual RewriteContext* MakeFakeContext(
-      RewriteDriver* driver, RewriteContext* parent,
-      ResourceContext* resource_context) {
+  virtual RewriteContext* MakeFakeContext(RewriteDriver* driver,
+                                          RewriteContext* parent,
+                                          ResourceContext* resource_context) {
     return new FakeFilter::Context(this, driver, parent, resource_context);
   }
   int num_rewrites() const { return num_rewrites_; }
@@ -106,14 +108,14 @@ class FakeFilter : public RewriteFilter {
     output_content_type_ = type;
   }
   const ContentType* output_content_type() { return output_content_type_; }
-  virtual void EncodeUserAgentIntoResourceContext(
-      ResourceContext* context) const;
+  void EncodeUserAgentIntoResourceContext(
+      ResourceContext* context) const override;
 
  protected:
-  virtual const char* id() const { return id_; }
+  const char* id() const override { return id_; }
   virtual OutputResourceKind kind() const { return kRewrittenResource; }
-  virtual const char* Name() const { return "MockFilter"; }
-  virtual bool ComputeOnTheFly() const { return false; }
+  const char* Name() const override { return "MockFilter"; }
+  bool ComputeOnTheFly() const override { return false; }
 
  private:
   const char* id_;

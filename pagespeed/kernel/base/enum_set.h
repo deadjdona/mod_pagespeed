@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_BASE_ENUM_SET_H_
 #define PAGESPEED_KERNEL_BASE_ENUM_SET_H_
@@ -25,7 +26,8 @@
 namespace net_instaweb {
 
 // Represents a set of values -- implemented via a bitset.
-template<typename EnumType, size_t NumEnums> class EnumSet {
+template <typename EnumType, size_t NumEnums>
+class EnumSet {
  public:
   bool IsSet(EnumType value) const {
     return bits_.test(static_cast<size_t>(value));
@@ -41,9 +43,7 @@ template<typename EnumType, size_t NumEnums> class EnumSet {
   // Inserts a value; no return value.
   //
   // TODO(jmarantz): change call-sites to Insert and remove this one.
-  void insert(EnumType value) {
-    bits_.set(static_cast<size_t>(value));
-  }
+  void insert(EnumType value) { bits_.set(static_cast<size_t>(value)); }
 
   // Returns true if a change was made.
   bool Erase(EnumType value) {
@@ -70,14 +70,10 @@ template<typename EnumType, size_t NumEnums> class EnumSet {
     return bits_ != save.bits_;
   }
 
-  void EraseSet(const EnumSet& src) {
-    bits_ &= ~src.bits_;
-  }
+  void EraseSet(const EnumSet& src) { bits_ &= ~src.bits_; }
 
   // Sets all the entries to true.
-  void SetAll() {
-    bits_.set();
-  }
+  void SetAll() { bits_.set(); }
 
   // Standard STL-like methods.
   void clear() { bits_.reset(); }
@@ -85,9 +81,7 @@ template<typename EnumType, size_t NumEnums> class EnumSet {
   bool empty() const { return bits_.none(); }
 
   // This overload is required for use in EXPECT_EQ in tests.
-  bool operator==(const EnumSet& that) const {
-    return bits_ == that.bits_;
-  }
+  bool operator==(const EnumSet& that) const { return bits_ == that.bits_; }
 
  private:
   typedef std::bitset<NumEnums> BitSet;

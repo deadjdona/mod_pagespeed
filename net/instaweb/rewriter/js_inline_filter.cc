@@ -1,18 +1,21 @@
-// Copyright 2010 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Author: mdsteele@google.com (Matthew D. Steele)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "net/instaweb/rewriter/public/js_inline_filter.h"
 
@@ -44,18 +47,24 @@ class JsInlineFilter::Context : public InlineRewriteContext {
           HtmlElement::Attribute* src)
       : InlineRewriteContext(filter, element, src), filter_(filter) {}
 
-  virtual bool ShouldInline(const ResourcePtr& resource,
-                            GoogleString* reason) const {
+  bool ShouldInline(const ResourcePtr& resource,
+                    GoogleString* reason) const override {
     return filter_->ShouldInline(resource, reason);
   }
 
-  virtual void RenderInline(
-      const ResourcePtr& resource, const StringPiece& text,
-      HtmlElement* element) {
+  void RenderInline(const ResourcePtr& resource, const StringPiece& text,
+                    HtmlElement* element) override {
     filter_->RenderInline(resource, text, element);
   }
 
-  virtual const char* id() const { return RewriteOptions::kJavascriptInlineId; }
+  const char* id() const override {
+    return RewriteOptions::kJavascriptInlineId;
+  }
+
+  bool PolicyPermitsRendering() const override {
+    return Driver()->content_security_policy().PermitsInlineScript();
+  }
+
   RewriteDriver::InputRole InputRole() const override {
     return RewriteDriver::InputRole::kScript;
   }
@@ -80,12 +89,9 @@ void JsInlineFilter::InitStats(Statistics* statistics) {
   statistics->AddVariable(kNumJsInlined);
 }
 
-void JsInlineFilter::StartDocumentImpl() {
-  should_inline_ = false;
-}
+void JsInlineFilter::StartDocumentImpl() { should_inline_ = false; }
 
-void JsInlineFilter::EndDocument() {
-}
+void JsInlineFilter::EndDocument() {}
 
 void JsInlineFilter::StartElementImpl(HtmlElement* element) {
   DCHECK(!should_inline_);
@@ -93,7 +99,7 @@ void JsInlineFilter::StartElementImpl(HtmlElement* element) {
   HtmlElement::Attribute* src;
   if (script_tag_scanner_.ParseScriptElement(element, &src) ==
       ScriptTagScanner::kJavaScript) {
-    should_inline_ = (src != NULL) && (src->DecodedValueOrNull() != NULL);
+    should_inline_ = (src != nullptr) && (src->DecodedValueOrNull() != nullptr);
   }
 }
 
@@ -101,9 +107,10 @@ void JsInlineFilter::EndElementImpl(HtmlElement* element) {
   if (should_inline_ && driver()->IsRewritable(element)) {
     DCHECK(element->keyword() == HtmlName::kScript);
     HtmlElement::Attribute* attr = element->FindAttribute(HtmlName::kSrc);
-    CHECK(attr != NULL);
+    CHECK(attr != nullptr);
     const char* src = attr->DecodedValueOrNull();
-    DCHECK(src != NULL) << "should_inline_ should be false if attr val is null";
+    DCHECK(src != nullptr)
+        << "should_inline_ should be false if attr val is null";
 
     // StartInlining() transfers ownership of ctx to RewriteDriver, or deletes
     // it on failure.
@@ -121,8 +128,7 @@ bool JsInlineFilter::ShouldInline(const ResourcePtr& resource,
   StringPiece contents(resource->ExtractUncompressedContents());
   if (contents.size() > size_threshold_bytes_) {
     *reason = StrCat("JS not inlined since it's bigger than ",
-                     Integer64ToString(size_threshold_bytes_),
-                     " bytes");
+                     Integer64ToString(size_threshold_bytes_), " bytes");
     return false;
   }
   // Or if it looks like it's gzip encoded.
@@ -140,9 +146,9 @@ bool JsInlineFilter::ShouldInline(const ResourcePtr& resource,
   return true;
 }
 
-void JsInlineFilter::RenderInline(
-    const ResourcePtr& resource, const StringPiece& contents,
-    HtmlElement* element) {
+void JsInlineFilter::RenderInline(const ResourcePtr& resource,
+                                  const StringPiece& contents,
+                                  HtmlElement* element) {
   // If it contains '</script' we need to escape.  The standard way to do this
   // is to replace </script with <\/script, but escaping / with \ is only valid
   // inside strings, and the following is legal javascript:
@@ -193,11 +199,9 @@ void JsInlineFilter::RenderInline(
 
     // To keep the case of the original 'script' text we need to run twice, once
     // for 's' and once for 'S'.
-    RE2::GlobalReplace(&contents_for_escaping,
-                       "<(/?)s([cC][rR][iI][pP][tT])",
+    RE2::GlobalReplace(&contents_for_escaping, "<(/?)s([cC][rR][iI][pP][tT])",
                        "<\\1\\\\u0073\\2");
-    RE2::GlobalReplace(&contents_for_escaping,
-                       "<(/?)S([cC][rR][iI][pP][tT])",
+    RE2::GlobalReplace(&contents_for_escaping, "<(/?)S([cC][rR][iI][pP][tT])",
                        "<\\1\\\\u0053\\2");
 
     escaped_contents = contents_for_escaping;
@@ -210,7 +214,7 @@ void JsInlineFilter::RenderInline(
   // sometimes interpreted as HTML (which will ignore CDATA delimiters),
   // we have to hide the CDATA delimiters behind Javascript comments.
   // See http://lachy.id.au/log/2006/11/xhtml-script
-  // and http://github.com/pagespeed/mod_pagespeed/issues/125
+  // and http://github.com/apache/incubator-pagespeed-mod/issues/125
   if (driver()->MimeTypeXhtmlStatus() != RewriteDriver::kIsNotXhtml) {
     // CDATA sections cannot be nested because they end with the first
     // occurrence of "]]>", so if the script contains that string
@@ -237,7 +241,7 @@ void JsInlineFilter::RenderInline(
 void JsInlineFilter::Characters(HtmlCharactersNode* characters) {
   if (should_inline_) {
     HtmlElement* script_element = characters->parent();
-    DCHECK(script_element != NULL);
+    DCHECK(script_element != nullptr);
     DCHECK_EQ(HtmlName::kScript, script_element->keyword());
     if (driver()->IsRewritable(script_element) &&
         OnlyWhitespace(characters->contents())) {

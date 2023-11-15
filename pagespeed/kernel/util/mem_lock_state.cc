@@ -1,20 +1,21 @@
 /*
- * Copyright 2015 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/util/mem_lock_state.h"
 
@@ -26,14 +27,12 @@
 namespace net_instaweb {
 
 MemLockState::MemLockState(StringPiece name, MemLockManager* manager)
-    : current_owner_(NULL),
+    : current_owner_(nullptr),
       lock_count_(0),
       name_(name.data(), name.size()),
-      manager_(manager) {
-}
+      manager_(manager) {}
 
-MemLockState::~MemLockState() {
-}
+MemLockState::~MemLockState() {}
 
 MemLock* MemLockState::CreateLock(int64 sequence) {
   MemLock* lock = new MemLock(sequence, this);
@@ -46,7 +45,7 @@ void MemLockState::RemoveLock(MemLock* lock) {
   if (--lock_count_ == 0) {
     CHECK(pending_locks_.empty());
     CHECK(pending_steals_.empty());
-    if (manager_ != NULL) {
+    if (manager_ != nullptr) {
       manager_->RemoveLockState(this);
     }
     delete this;
@@ -54,7 +53,7 @@ void MemLockState::RemoveLock(MemLock* lock) {
 }
 
 void MemLockState::Unlock() {
-  CHECK(current_owner_ != NULL);
+  CHECK(current_owner_ != nullptr);
   current_owner_->Clear();
   if (!pending_locks_.empty()) {
     WakeupOrderedLockSet::iterator p = pending_locks_.begin();
@@ -73,15 +72,15 @@ void MemLockState::Unlock() {
     }
     current_owner_->Grant(grant_time_ms);
   } else {
-    current_owner_ = NULL;
+    current_owner_ = nullptr;
   }
 }
 
 // This new lock wants to steal more aggressively than
 // pending_lock.  We must remove it from all maps before
 // adjusting its timing to keep the map comparators sane.
-void MemLockState::RescheduleLock(
-    int64 held_lock_grant_time_ms, MemLock* lock) {
+void MemLockState::RescheduleLock(int64 held_lock_grant_time_ms,
+                                  MemLock* lock) {
   UnscheduleLock(lock);
   lock->CalculateWakeupTime(held_lock_grant_time_ms);
   pending_locks_.insert(lock);
@@ -92,8 +91,8 @@ void MemLockState::RescheduleLock(
 }
 
 void MemLockState::MemLockManagerDestroyed() {
-  CHECK(manager_ != NULL);
-  manager_ = NULL;
+  CHECK(manager_ != nullptr);
+  manager_ = nullptr;
   while (!pending_locks_.empty()) {
     MemLock* lock = *pending_locks_.begin();
     lock->Deny();
@@ -101,13 +100,13 @@ void MemLockState::MemLockManagerDestroyed() {
 }
 
 void MemLockState::StealLock(MemLock* lock) {
-  CHECK(current_owner_ != NULL);
+  CHECK(current_owner_ != nullptr);
   current_owner_->Unlock();  // We expect lock should be the first stealer.
   CHECK_EQ(current_owner_, lock);
 }
 
 bool MemLockState::GrabLock(MemLock* lock) {
-  if (current_owner_ != NULL) {
+  if (current_owner_ != nullptr) {
     return false;
   }
   current_owner_ = lock;
@@ -115,7 +114,7 @@ bool MemLockState::GrabLock(MemLock* lock) {
 }
 
 void MemLockState::ScheduleLock(MemLock* lock) {
-  CHECK(current_owner_ != NULL);
+  CHECK(current_owner_ != nullptr);
   // Assume optimistically that this lock will displace any current
   // pending steal.  If that turns out to be false we will need to
   // recalculate its steal_time.
@@ -147,13 +146,13 @@ void MemLockState::ScheduleLock(MemLock* lock) {
 void MemLockState::UnscheduleLock(MemLock* lock) {
   pending_locks_.erase(lock);
   pending_steals_.erase(lock);
-  if (manager_ != NULL) {
+  if (manager_ != nullptr) {
     manager_->RemovePendingLock(lock);
   }
 }
 
-bool MemLockState::Comparator::operator()(
-    const MemLock* a, const MemLock* b) const {
+bool MemLockState::Comparator::operator()(const MemLock* a,
+                                          const MemLock* b) const {
   if (a == b) {
     return false;
   }
@@ -165,8 +164,8 @@ bool MemLockState::Comparator::operator()(
   return cmp < 0;
 }
 
-bool MemLockState::StealComparator::operator()(
-    const MemLock* a, const MemLock* b) const {
+bool MemLockState::StealComparator::operator()(const MemLock* a,
+                                               const MemLock* b) const {
   if (a == b) {
     return false;
   }
@@ -179,7 +178,7 @@ bool MemLockState::StealComparator::operator()(
 }
 
 bool MemLockState::IsHeldInOrderedSet(MemLock* lock) const {
-  return (((manager_ != NULL) && manager_->IsHeldInOrderedSet(lock)) ||
+  return (((manager_ != nullptr) && manager_->IsHeldInOrderedSet(lock)) ||
           (pending_locks_.find(lock) != pending_locks_.end()) ||
           (pending_steals_.find(lock) != pending_steals_.end()));
 }

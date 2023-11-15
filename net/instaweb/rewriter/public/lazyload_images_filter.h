@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: nikhilmadan@google.com (Nikhil Madan)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_LAZYLOAD_IMAGES_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_LAZYLOAD_IMAGES_FILTER_H_
@@ -82,9 +83,9 @@ class LazyloadImagesFilter : public CommonFilter {
   static const char* kIsLazyloadScriptInsertedPropertyName;
 
   explicit LazyloadImagesFilter(RewriteDriver* driver);
-  virtual ~LazyloadImagesFilter();
+  ~LazyloadImagesFilter() override;
 
-  virtual const char* Name() const { return "Lazyload Images"; }
+  const char* Name() const override { return "Lazyload Images"; }
   ScriptUsage GetScriptUsage() const override { return kWillInjectScripts; }
 
   static void InitStats(Statistics* statistics);
@@ -93,15 +94,14 @@ class LazyloadImagesFilter : public CommonFilter {
   // Lazyload filter will be no op for the request if ShouldApply returns false.
   static RewriterHtmlApplication::Status ShouldApply(RewriteDriver* driver);
   static GoogleString GetLazyloadJsSnippet(
-      const RewriteOptions* options,
-      StaticAssetManager* static_asset_manager);
+      const RewriteOptions* options, StaticAssetManager* static_asset_manager);
 
  private:
-  virtual void StartDocumentImpl();
-  virtual void EndDocument();
-  virtual void StartElementImpl(HtmlElement* element);
-  virtual void EndElementImpl(HtmlElement* element);
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void StartDocumentImpl() override;
+  void EndDocument() override;
+  void StartElementImpl(HtmlElement* element) override;
+  void EndElementImpl(HtmlElement* element) override;
+  void DetermineEnabled(GoogleString* disabled_reason) override;
 
   // Clears all state associated with the filter.
   void Clear();

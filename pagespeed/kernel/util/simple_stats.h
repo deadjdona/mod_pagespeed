@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_UTIL_SIMPLE_STATS_H_
 #define PAGESPEED_KERNEL_UTIL_SIMPLE_STATS_H_
@@ -35,19 +36,19 @@ class ThreadSystem;
 class SimpleStatsVariable : public MutexedScalar {
  public:
   SimpleStatsVariable(StringPiece name, Statistics* stats);
-  virtual ~SimpleStatsVariable();
+  ~SimpleStatsVariable() override;
   virtual StringPiece GetName() const { return StringPiece(); }
 
   void set_mutex(AbstractMutex* mutex) { mutex_.reset(mutex); }
 
  protected:
-  virtual AbstractMutex* mutex() const { return mutex_.get(); }
-  virtual int64 GetLockHeld() const;
-  virtual int64 SetReturningPreviousValueLockHeld(int64 value);
+  AbstractMutex* mutex() const override { return mutex_.get(); }
+  int64 GetLockHeld() const override;
+  int64 SetReturningPreviousValueLockHeld(int64 value) override;
 
  private:
   int64 value_;
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   DISALLOW_COPY_AND_ASSIGN(SimpleStatsVariable);
 };
 
@@ -57,14 +58,14 @@ class SimpleStats : public ScalarStatisticsTemplate<SimpleStatsVariable> {
   // SimpleStats will not take ownership of thread_system.  The thread system is
   // used to instantiate mutexes to allow SimpleStatsVariable to be thread-safe.
   explicit SimpleStats(ThreadSystem* thread_system);
-  virtual ~SimpleStats();
+  ~SimpleStats() override;
 
   void SetThreadSystem(ThreadSystem* x);
   ThreadSystem* thread_system() const { return thread_system_; }
 
-  virtual CountHistogram* NewHistogram(StringPiece name);
-  virtual Var* NewVariable(StringPiece name);
-  virtual UpDown* NewUpDownCounter(StringPiece name);
+  CountHistogram* NewHistogram(StringPiece name) override;
+  Var* NewVariable(StringPiece name) override;
+  UpDown* NewUpDownCounter(StringPiece name) override;
 
  private:
   ThreadSystem* thread_system_;  // Not owned by this class.

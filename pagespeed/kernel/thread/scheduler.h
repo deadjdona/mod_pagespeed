@@ -1,18 +1,21 @@
-// Copyright 2011 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_KERNEL_THREAD_SCHEDULER_H_
 #define PAGESPEED_KERNEL_THREAD_SCHEDULER_H_
@@ -196,17 +199,16 @@ class Scheduler {
   // Inserts an alarm, optionally broadcasting if the wakeup time has
   // changed.
   void InsertAlarmAtUsMutexHeld(int64 wakeup_time_us,
-                                bool broadcast_on_wakeup_change,
-                                Alarm* alarm);
+                                bool broadcast_on_wakeup_change, Alarm* alarm);
   void CancelWaiting(Alarm* alarm);
   bool NoPendingAlarms();
 
   ThreadSystem* thread_system_;
   Timer* timer_;
-  scoped_ptr<ThreadSystem::CondvarCapableMutex> mutex_;
+  std::unique_ptr<ThreadSystem::CondvarCapableMutex> mutex_;
   // condvar_ tracks whether interesting (next-wakeup decreasing or
   // signal_count_ increasing) events occur.
-  scoped_ptr<ThreadSystem::Condvar> condvar_;
+  std::unique_ptr<ThreadSystem::Condvar> condvar_;
   uint32 index_;  // Used to disambiguate alarms with equal deadlines
   AlarmSet outstanding_alarms_;  // Priority queue of future alarms
   // An alarm may be deleted iff it is successfully removed from
@@ -227,11 +229,12 @@ class Scheduler {
 class SchedulerBlockingFunction : public Function {
  public:
   explicit SchedulerBlockingFunction(Scheduler* scheduler);
-  virtual ~SchedulerBlockingFunction();
-  virtual void Run();
-  virtual void Cancel();
+  ~SchedulerBlockingFunction() override;
+  void Run() override;
+  void Cancel() override;
   // Block until called back, returning true for Run and false for Cancel.
   bool Block();
+
  private:
   Scheduler* scheduler_;
   bool success_;

@@ -41,7 +41,7 @@ binary_packages=(subversion httpd gcc-c++ gperf make rpm-build
 src_packages=()
 
 if "$additional_dev_packages"; then
-  binary_packages+=(php php-mbstring autoconf libtool valgrind pcre-devel)
+  binary_packages+=(php php-mbstring autoconf libtool valgrind pcre-devel libuuid-devel)
   src_packages+=(redis-server)
 fi
 
@@ -77,11 +77,11 @@ fi
 if [ -n "$install_sl_gcc" ]; then
   # The signing cert is the same for all versions.
   curl -o /etc/pki/rpm-gpg/RPM-GPG-KEY-cern \
-    https://linux.web.cern.ch/linux/scientific6/docs/repository/cern/slc6X/i386/RPM-GPG-KEY-cern
+    http://linuxsoft.cern.ch/cern/slc6X/i386/RPM-GPG-KEY-cern
   rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-cern
   # We have to use curl; wget can't parse their SAN.
   curl -o /etc/yum.repos.d/slc${install_sl_gcc}-devtoolset.repo \
-    https://linux.web.cern.ch/linux/scientific${install_sl_gcc}/docs/repository/cern/devtoolset/slc${install_sl_gcc}-devtoolset.repo
+    https://linuxsoft.cern.ch/cern/devtoolset/slc${install_sl_gcc}-devtoolset.repo
   binary_packages+=(devtoolset-2-gcc-c++ devtoolset-2-binutils)
 fi
 

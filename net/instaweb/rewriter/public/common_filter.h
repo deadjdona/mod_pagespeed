@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_COMMON_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_COMMON_FILTER_H_
@@ -50,7 +51,7 @@ class CommonFilter : public EmptyHtmlFilter {
   static const char kCreateResourceFailedDebugMsg[];
 
   explicit CommonFilter(RewriteDriver* driver);
-  virtual ~CommonFilter();
+  ~CommonFilter() override;
 
   // Getters
 
@@ -80,14 +81,14 @@ class CommonFilter : public EmptyHtmlFilter {
   void InsertNodeAtBodyEnd(HtmlNode* data);
 
   // Note: Don't overload these methods, overload the implementers instead!
-  virtual void StartDocument();
-  virtual void StartElement(HtmlElement* element);
-  virtual void EndElement(HtmlElement* element);
+  void StartDocument() override;
+  void StartElement(HtmlElement* element) override;
+  void EndElement(HtmlElement* element) override;
 
   // If a subclass overloads this function and wishes to use
   // InsertNodeAtBodyEnd(), it needs to make an upcall to this implementation
   // for InsertNodeAtBodyEnd() to work correctly.
-  virtual void Characters(HtmlCharactersNode* characters);
+  void Characters(HtmlCharactersNode* characters) override;
 
   // Creates an input resource with the url evaluated based on input_url
   // which may need to be absolutified relative to base_url(). Returns NULL
@@ -112,6 +113,8 @@ class CommonFilter : public EmptyHtmlFilter {
   // Resolves input_url based on the driver's location and any base tag into
   // out_url. If resolution fails, the resulting URL may be invalid.
   void ResolveUrl(StringPiece input_url, GoogleUrl* out_url);
+
+  bool IsRelativeUrlLoadPermittedByCsp(StringPiece url, CspDirective role);
 
   // Returns whether or not the base url is valid.  This value will change
   // as a filter processes the document.  E.g. If there are url refs before
@@ -159,7 +162,9 @@ class CommonFilter : public EmptyHtmlFilter {
   // directive to be optimized. Filters that end up inlining content onto the
   // HTML are almost the only ones that can safely do this.
   virtual RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
-      const { return RewriteDriver::kInlineOnlyAuthorizedResources; }
+      const {
+    return RewriteDriver::kInlineOnlyAuthorizedResources;
+  }
 
   // Returns true if the filter intends to inline the resource it fetches.  This
   // is to support AllowWhenInlining.  Unlike AllowUnauthorizedDomain() this

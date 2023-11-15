@@ -1,20 +1,22 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: sligocki@google.com (Shawn Ligocki)
 //
 // Output resources are created by a RewriteDriver. They must be able to
 // write contents and return their url (so that it can be href'd on a page).
@@ -51,23 +53,21 @@ class OutputResource : public Resource {
   // The 'options' argument can be NULL.  This is done in the Fetch path because
   // that field is only used for domain sharding, and during the fetch, further
   // domain makes no sense.
-  OutputResource(const RewriteDriver* driver,
-                 StringPiece resolved_base,
+  OutputResource(const RewriteDriver* driver, StringPiece resolved_base,
                  StringPiece unmapped_base, /* aka source domain */
                  StringPiece original_base, /* aka cnamed domain */
-                 const ResourceNamer& resource_id,
-                 OutputResourceKind kind);
+                 const ResourceNamer& resource_id, OutputResourceKind kind);
 
-  virtual void LoadAndCallback(NotCacheablePolicy not_cacheable_policy,
-                               const RequestContextPtr& request_context,
-                               AsyncCallback* callback);
+  void LoadAndCallback(NotCacheablePolicy not_cacheable_policy,
+                       const RequestContextPtr& request_context,
+                       AsyncCallback* callback) override;
   // NOTE: url() will crash if resource has does not have a hash set yet.
   // Specifically, this will occur if the resource has not been completely
   // written yet. Before that point, the final URL cannot be known.
   //
   // Note: the OutputResource will never have a query string, even when
   // ModPagespeedAddOptionsToUrls is on.
-  virtual GoogleString url() const;
+  GoogleString url() const override;
   // Returns the same as url(), but with a spoofed hash in case no hash
   // was set yet. Use this for error reporting, etc. where you do not
   // know whether the output resource has a valid hash yet.
@@ -148,7 +148,7 @@ class OutputResource : public Resource {
   bool IsWritten() const { return writing_complete_; }
 
   // Sets the type of the output resource, and thus also its suffix.
-  virtual void SetType(const ContentType* type);
+  void SetType(const ContentType* type) override;
 
   // Whenever output resources are created via RewriteDriver
   // (except DecodeOutputResource) it looks up cached
@@ -197,7 +197,7 @@ class OutputResource : public Resource {
   Writer* BeginWrite(MessageHandler* message_handler);
   void EndWrite(MessageHandler* message_handler);
 
-  virtual bool UseHttpCache() const { return true; }
+  bool UseHttpCache() const override { return true; }
 
   // Extra suffix to be added to Cache-Control in the response headers
   // when serving the response.  E.g. a filter might want to set
@@ -211,7 +211,7 @@ class OutputResource : public Resource {
   }
 
  protected:
-  virtual ~OutputResource();
+  ~OutputResource() override;
   REFCOUNT_FRIEND_DECLARATION(OutputResource);
 
  private:

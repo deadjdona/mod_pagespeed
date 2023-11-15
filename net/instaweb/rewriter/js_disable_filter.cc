@@ -1,24 +1,24 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: gagansingh@google.com (Gagan Singh)
 
 #include "net/instaweb/rewriter/public/js_disable_filter.h"
 
-#include "net/instaweb/http/public/log_record.h"
 #include "net/instaweb/rewriter/public/js_defer_disabled_filter.h"
 #include "net/instaweb/rewriter/public/rewrite_driver.h"
 #include "net/instaweb/rewriter/public/rewrite_options.h"
@@ -30,6 +30,7 @@
 #include "pagespeed/kernel/html/html_node.h"
 #include "pagespeed/kernel/http/user_agent_matcher.h"
 #include "pagespeed/opt/logging/enums.pb.h"
+#include "pagespeed/opt/logging/log_record.h"
 
 namespace net_instaweb {
 
@@ -45,11 +46,9 @@ JsDisableFilter::JsDisableFilter(RewriteDriver* driver)
     : CommonFilter(driver),
       script_tag_scanner_(driver),
       index_(0),
-      ie_meta_tag_written_(false) {
-}
+      ie_meta_tag_written_(false) {}
 
-JsDisableFilter::~JsDisableFilter() {
-}
+JsDisableFilter::~JsDisableFilter() {}
 
 void JsDisableFilter::DetermineEnabled(GoogleString* disabled_reason) {
   bool should_apply = JsDeferDisabledFilter::ShouldApply(driver());
@@ -79,8 +78,7 @@ void JsDisableFilter::InsertJsDeferExperimentalScript() {
   }
   // We are not adding this code in js_defer_disabled_filter to avoid
   // duplication of code for blink and critical line code.
-  HtmlElement* script_node =
-      driver()->NewElement(NULL, HtmlName::kScript);
+  HtmlElement* script_node = driver()->NewElement(nullptr, HtmlName::kScript);
 
   driver()->AddAttribute(script_node, HtmlName::kType, "text/javascript");
   driver()->AddAttribute(script_node, HtmlName::kDataPagespeedNoDefer,
@@ -102,14 +100,12 @@ void JsDisableFilter::InsertMetaTagForIE(HtmlElement* element) {
 
   HtmlElement* head_node = element;
   if (element->keyword() != HtmlName::kHead) {
-    head_node =
-        driver()->NewElement(element->parent(), HtmlName::kHead);
+    head_node = driver()->NewElement(element->parent(), HtmlName::kHead);
     driver()->InsertNodeBeforeCurrent(head_node);
   }
   // TODO(ksimbili): Don't add the following if there is already a meta tag
   // and if it's content is greater than IE8 (deferJs supported version).
-  HtmlElement* meta_tag =
-      driver()->NewElement(head_node, HtmlName::kMeta);
+  HtmlElement* meta_tag = driver()->NewElement(head_node, HtmlName::kMeta);
 
   driver()->AddAttribute(meta_tag, HtmlName::kHttpEquiv, "X-UA-Compatible");
   driver()->AddAttribute(meta_tag, HtmlName::kContent, "IE=edge");
@@ -137,7 +133,7 @@ void JsDisableFilter::StartElementImpl(HtmlElement* element) {
       }
 
       // Honor disallow.
-      if (src != NULL && src->DecodedValueOrNull() != NULL) {
+      if (src != nullptr && src->DecodedValueOrNull() != nullptr) {
         GoogleUrl abs_url(driver()->base_url(), src->DecodedValueOrNull());
         if (abs_url.IsWebValid() &&
             !driver()->options()->IsAllowed(abs_url.Spec())) {
@@ -155,24 +151,23 @@ void JsDisableFilter::StartElementImpl(HtmlElement* element) {
 
       // TODO(rahulbansal): Add logging for prioritize scripts
       HtmlElement::Attribute* type = element->FindAttribute(HtmlName::kType);
-      if (type != NULL) {
+      if (type != nullptr) {
         type->set_name(driver()->MakeName(HtmlName::kDataPagespeedOrigType));
       }
       // Delete all type attributes if any. Some sites have more than one type
       // attribute(duplicate). Chrome and firefox picks up the first type
       // attribute for the node.
-      while (element->DeleteAttribute(HtmlName::kType)) {}
-      HtmlElement::Attribute* prioritize_attr = element->FindAttribute(
-          HtmlName::kDataPagespeedPrioritize);
-      if (prioritize_attr != NULL &&
+      while (element->DeleteAttribute(HtmlName::kType)) {
+      }
+      HtmlElement::Attribute* prioritize_attr =
+          element->FindAttribute(HtmlName::kDataPagespeedPrioritize);
+      if (prioritize_attr != nullptr &&
           driver()->options()->enable_prioritizing_scripts()) {
-        element->AddAttribute(
-            driver()->MakeName(HtmlName::kType), "text/prioritypsajs",
-            HtmlElement::DOUBLE_QUOTE);
+        element->AddAttribute(driver()->MakeName(HtmlName::kType),
+                              "text/prioritypsajs", HtmlElement::DOUBLE_QUOTE);
       } else {
-        element->AddAttribute(
-            driver()->MakeName(HtmlName::kType), "text/psajs",
-            HtmlElement::DOUBLE_QUOTE);
+        element->AddAttribute(driver()->MakeName(HtmlName::kType), "text/psajs",
+                              HtmlElement::DOUBLE_QUOTE);
       }
       element->AddAttribute(
           driver()->MakeName(HtmlName::kDataPagespeedOrigIndex),
@@ -181,7 +176,7 @@ void JsDisableFilter::StartElementImpl(HtmlElement* element) {
   }
 
   HtmlElement::Attribute* onload = element->FindAttribute(HtmlName::kOnload);
-  if (onload != NULL) {
+  if (onload != nullptr) {
     // The onload value can be any script. It's not necessary that it is
     // always javascript. But we don't have any way of identifying it.
     // For now let us assume it is JS, which is the case in majority.
@@ -196,11 +191,8 @@ void JsDisableFilter::StartElementImpl(HtmlElement* element) {
   }
 }
 
-void JsDisableFilter::EndElementImpl(HtmlElement* element) {
-}
+void JsDisableFilter::EndElementImpl(HtmlElement* element) {}
 
-void JsDisableFilter::EndDocument() {
-  InsertJsDeferExperimentalScript();
-}
+void JsDisableFilter::EndDocument() { InsertJsDeferExperimentalScript(); }
 
 }  // namespace net_instaweb

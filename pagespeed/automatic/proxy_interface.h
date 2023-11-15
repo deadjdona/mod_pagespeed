@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: sligocki@google.com (Shawn Ligocki)
 //
 // Simple interface for running Page Speed Automatic as a proxy.
 //
@@ -50,7 +52,7 @@ class ProxyInterface : public UrlAsyncFetcher {
  public:
   ProxyInterface(StringPiece stats_prefix, StringPiece hostname, int port,
                  ServerContext* server_context, Statistics* stats);
-  virtual ~ProxyInterface();
+  ~ProxyInterface() override;
 
   // Initializes statistics variables associated with this class.
   static void InitStats(StringPiece stats_prefix, Statistics* statistics);
@@ -58,9 +60,8 @@ class ProxyInterface : public UrlAsyncFetcher {
   // All requests use this interface. We decide internally whether the
   // request is a pagespeed resource, HTML page to be rewritten or another
   // resource to be proxied directly.
-  virtual void Fetch(const GoogleString& requested_url,
-                     MessageHandler* handler,
-                     AsyncFetch* async_fetch);
+  void Fetch(const GoogleString& requested_url, MessageHandler* handler,
+             AsyncFetch* async_fetch) override;
 
   // Is this url_string well-formed enough to proxy through?
   bool IsWellFormedUrl(const GoogleUrl& url);
@@ -69,10 +70,8 @@ class ProxyInterface : public UrlAsyncFetcher {
 
   // Initiates the PropertyCache look up.
   virtual ProxyFetchPropertyCallbackCollector* InitiatePropertyCacheLookup(
-      bool is_resource_fetch,
-      const GoogleUrl& request_url,
-      RewriteOptions* options,
-      AsyncFetch* async_fetch);
+      bool is_resource_fetch, const GoogleUrl& request_url,
+      RewriteOptions* options, AsyncFetch* async_fetch);
 
  protected:
   // Needed by subclasses when overriding InitiatePropertyCacheLookup.
@@ -84,10 +83,8 @@ class ProxyInterface : public UrlAsyncFetcher {
   // Handle requests that are being proxied.
   // * HTML requests are rewritten.
   // * Resource requests are proxied verbatim.
-  void ProxyRequest(bool is_resource_fetch,
-                    const GoogleUrl& requested_url,
-                    AsyncFetch* async_fetch,
-                    MessageHandler* handler);
+  void ProxyRequest(bool is_resource_fetch, const GoogleUrl& requested_url,
+                    AsyncFetch* async_fetch, MessageHandler* handler);
 
   // Callback function which runs once we have rewrite_options for requests that
   // are being proxied.
@@ -121,7 +118,7 @@ class ProxyInterface : public UrlAsyncFetcher {
   // Number of resource requests without domain-specific config.
   TimedVariable* resource_requests_without_domain_config_;
 
-  scoped_ptr<ProxyFetchFactory> proxy_fetch_factory_;
+  std::unique_ptr<ProxyFetchFactory> proxy_fetch_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(ProxyInterface);
 };

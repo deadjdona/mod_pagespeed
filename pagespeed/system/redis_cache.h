@@ -1,46 +1,47 @@
 /*
- * Copyright 2016 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: yeputons@google.com (Egor Suvorov)
 
 #ifndef PAGESPEED_SYSTEM_REDIS_CACHE_H_
 #define PAGESPEED_SYSTEM_REDIS_CACHE_H_
 
 #include <stdarg.h>
 
-#include <memory>
 #include <initializer_list>
 #include <map>
+#include <memory>
 #include <vector>
 
+#include "external/hiredis/hiredis.h"
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/scoped_ptr.h"
 #include "pagespeed/kernel/base/shared_string.h"
 #include "pagespeed/kernel/base/statistics.h"
-#include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/base/string.h"
+#include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/base/thread_annotations.h"
 #include "pagespeed/kernel/base/thread_system.h"
 #include "pagespeed/kernel/base/timer.h"
 #include "pagespeed/kernel/cache/cache_interface.h"
 #include "pagespeed/kernel/thread/thread_synchronizer.h"
 #include "pagespeed/system/external_server_spec.h"
-#include "third_party/hiredis/src/hiredis.h"
 
 namespace net_instaweb {
 
@@ -79,8 +80,8 @@ class RedisCache : public CacheInterface {
   // that these pointers are valid throughout full lifetime of RedisCache.
   RedisCache(StringPiece host, int port, ThreadSystem* thread_system,
              MessageHandler* message_handler, Timer* timer,
-             int64 reconnection_delay_ms, int64 timeout_us,
-             Statistics* stats);
+             int64 reconnection_delay_ms, int64 timeout_us, Statistics* stats,
+             int database_index, int ttl_sec);
   ~RedisCache() override { ShutDown(); }
 
   static void InitStats(Statistics* stats);
@@ -111,15 +112,11 @@ class RedisCache : public CacheInterface {
 
   // Total number of times we hit one server and were redirected to a different
   // one.
-  int64 Redirections() {
-    return redirections_->Get();
-  }
+  int64 Redirections() { return redirections_->Get(); }
 
   // Total number of times we looked up the cluster slots mappings to avoid
   // redirections.
-  int64 ClusterSlotsFetches() {
-    return cluster_slots_fetches_->Get();
-  }
+  int64 ClusterSlotsFetches() { return cluster_slots_fetches_->Get(); }
 
  private:
   struct RedisReplyDeleter {
@@ -142,7 +139,8 @@ class RedisCache : public CacheInterface {
 
   class Connection {
    public:
-    Connection(RedisCache* redis_cache, StringPiece host, int port);
+    Connection(RedisCache* redis_cache, StringPiece host, int port,
+               int database_index);
 
     void StartUp(bool connect_now = true)
         LOCKS_EXCLUDED(redis_mutex_, state_mutex_);
@@ -169,17 +167,17 @@ class RedisCache : public CacheInterface {
         EXCLUSIVE_LOCKS_REQUIRED(redis_mutex_) LOCKS_EXCLUDED(state_mutex_);
 
    private:
-    enum State {
-      kShutDown,
-      kDisconnected,
-      kConnecting,
-      kConnected
-    };
+    enum State { kShutDown, kDisconnected, kConnecting, kConnected };
 
     bool IsHealthyLockHeld() const EXCLUSIVE_LOCKS_REQUIRED(state_mutex_);
     void UpdateState() EXCLUSIVE_LOCKS_REQUIRED(redis_mutex_, state_mutex_);
 
+    // connects with redis as well as selects redis database
+    bool EnsureConnectionAndDatabaseSelection()
+        EXCLUSIVE_LOCKS_REQUIRED(redis_mutex_) LOCKS_EXCLUDED(state_mutex_);
     bool EnsureConnection() EXCLUSIVE_LOCKS_REQUIRED(redis_mutex_)
+        LOCKS_EXCLUDED(state_mutex_);
+    bool EnsureDatabaseSelection() EXCLUSIVE_LOCKS_REQUIRED(redis_mutex_)
         LOCKS_EXCLUDED(state_mutex_);
 
     RedisContext TryConnect() LOCKS_EXCLUDED(redis_mutex_, state_mutex_);
@@ -189,12 +187,16 @@ class RedisCache : public CacheInterface {
     const RedisCache* redis_cache_;
     const GoogleString host_;
     const int port_;
-    const scoped_ptr<AbstractMutex> redis_mutex_;
-    const scoped_ptr<AbstractMutex> state_mutex_;
+    const std::unique_ptr<AbstractMutex> redis_mutex_;
+    const std::unique_ptr<AbstractMutex> state_mutex_;
 
     RedisContext redis_ GUARDED_BY(redis_mutex_);
     State state_ GUARDED_BY(state_mutex_);
     int64 next_reconnect_at_ms_ GUARDED_BY(state_mutex_);
+
+    // selected database is a property of the connection,
+    // should re-select it on reconnection
+    const int database_index_;
 
     DISALLOW_COPY_AND_ASSIGN(Connection);
   };
@@ -202,12 +204,11 @@ class RedisCache : public CacheInterface {
 
   struct ClusterMapping {
     // We only ever add connections, so it's ok for us to save raw pointers.
-    ClusterMapping(int start_slot_range,
-                   int end_slot_range,
-                   Connection* connection) :
-        start_slot_range_(start_slot_range),
-        end_slot_range_(end_slot_range),
-        connection_(connection) {}
+    ClusterMapping(int start_slot_range, int end_slot_range,
+                   Connection* connection)
+        : start_slot_range_(start_slot_range),
+          end_slot_range_(end_slot_range),
+          connection_(connection) {}
     int start_slot_range_;
     int end_slot_range_;
     Connection* connection_;
@@ -233,7 +234,8 @@ class RedisCache : public CacheInterface {
 
   // Must not be called under Connection::GetOperationLock(), that will cause
   // lock inversion and potential theoretical deadlock.
-  Connection* GetOrCreateConnection(ExternalServerSpec spec);
+  Connection* GetOrCreateConnection(ExternalServerSpec spec,
+                                    const int database_index);
 
   // Ask redis what keys should go to which servers.
   void FetchClusterSlotMapping(Connection* connection)
@@ -253,9 +255,9 @@ class RedisCache : public CacheInterface {
   Timer* timer_;
   const int64 reconnection_delay_ms_;
   const int64 timeout_us_;
-  const scoped_ptr<ThreadSynchronizer> thread_synchronizer_;
-  const scoped_ptr<ThreadSystem::RWLock> connections_lock_;
-  const scoped_ptr<ThreadSystem::RWLock> cluster_map_lock_;
+  const std::unique_ptr<ThreadSynchronizer> thread_synchronizer_;
+  const std::unique_ptr<ThreadSystem::RWLock> connections_lock_;
+  const std::unique_ptr<ThreadSystem::RWLock> cluster_map_lock_;
   Variable* redirections_;
   Variable* cluster_slots_fetches_;
 
@@ -266,6 +268,9 @@ class RedisCache : public CacheInterface {
 
   // Not guarded, but should only be modified in StartUp().
   Connection* main_connection_;
+
+  const int database_index_;
+  const int ttl_sec_;
 
   friend class RedisCacheTest;
   DISALLOW_COPY_AND_ASSIGN(RedisCache);

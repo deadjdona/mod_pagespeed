@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: morlovich@google.com (Maksim Orlovich)
 
 #include "net/instaweb/rewriter/public/google_font_service_input_resource.h"
 
@@ -41,19 +42,14 @@ const char kFontApiHost[] = "fonts.googleapis.com";
 }  // namespace
 
 GoogleFontServiceInputResource::GoogleFontServiceInputResource(
-    RewriteDriver* rewrite_driver,
-    bool is_https,
-    const StringPiece& url,
-    const StringPiece& cache_key,
-    const GoogleString& user_agent)
-    : CacheableResourceBase("font_service_input_resource",
-                            url, cache_key, &kContentTypeCss, rewrite_driver),
+    RewriteDriver* rewrite_driver, bool is_https, const StringPiece& url,
+    const StringPiece& cache_key, const GoogleString& user_agent)
+    : CacheableResourceBase("font_service_input_resource", url, cache_key,
+                            &kContentTypeCss, rewrite_driver),
       user_agent_(user_agent),
-      is_https_(is_https) {
-}
+      is_https_(is_https) {}
 
-GoogleFontServiceInputResource::~GoogleFontServiceInputResource() {
-}
+GoogleFontServiceInputResource::~GoogleFontServiceInputResource() {}
 
 bool GoogleFontServiceInputResource::IsFontServiceUrl(const GoogleUrl& url) {
   return url.IsWebValid() && url.Host() == kFontApiHost;
@@ -62,7 +58,7 @@ bool GoogleFontServiceInputResource::IsFontServiceUrl(const GoogleUrl& url) {
 GoogleFontServiceInputResource* GoogleFontServiceInputResource::Make(
     const GoogleUrl& parsed_url, RewriteDriver* rewrite_driver) {
   if (!IsFontServiceUrl(parsed_url)) {
-    return NULL;
+    return nullptr;
   }
 
   // Compute cache key, incorporating the UA string --- but normalize it first,
@@ -70,10 +66,10 @@ GoogleFontServiceInputResource* GoogleFontServiceInputResource::Make(
   const std::vector<const UserAgentNormalizer*>& ua_normalizers =
       rewrite_driver->server_context()->factory()->user_agent_normalizers();
   GoogleString ua = UserAgentNormalizer::NormalizeWithAll(
-                        ua_normalizers, rewrite_driver->user_agent());
+      ua_normalizers, rewrite_driver->user_agent());
 
   StringPiece url_plus_ua_spec;
-  scoped_ptr<GoogleUrl> url_plus_ua(
+  std::unique_ptr<GoogleUrl> url_plus_ua(
       parsed_url.CopyAndAddQueryParam("X-PS-UA", ua));
   url_plus_ua_spec = url_plus_ua->Spec();
 
@@ -89,12 +85,12 @@ GoogleFontServiceInputResource* GoogleFontServiceInputResource::Make(
     is_https = true;
   } else {
     // Huh?
-    return NULL;
+    return nullptr;
   }
 
-  return new GoogleFontServiceInputResource(
-      rewrite_driver, is_https, parsed_url.Spec(), cache_key,
-      rewrite_driver->user_agent());
+  return new GoogleFontServiceInputResource(rewrite_driver, is_https,
+                                            parsed_url.Spec(), cache_key,
+                                            rewrite_driver->user_agent());
 }
 
 void GoogleFontServiceInputResource::InitStats(Statistics* stats) {
@@ -109,15 +105,15 @@ void GoogleFontServiceInputResource::PrepareRequest(
   headers->Replace(HttpAttributes::kUserAgent, user_agent_);
 
   request_context->AddSessionAuthorizedFetchOrigin(
-      is_https_ ?
-          "https://fonts.googleapis.com" : "http://fonts.googleapis.com");
+      is_https_ ? "https://fonts.googleapis.com"
+                : "http://fonts.googleapis.com");
 }
 
 void GoogleFontServiceInputResource::PrepareResponseHeaders(
     ResponseHeaders* headers) {
   // Refuse to deal with anything but CSS.
   const ContentType* content_type = headers->DetermineContentType();
-  if (content_type == NULL || !content_type->IsCss()) {
+  if (content_type == nullptr || !content_type->IsCss()) {
     headers->set_status_code(HttpStatus::kNotAcceptable);
   }
 

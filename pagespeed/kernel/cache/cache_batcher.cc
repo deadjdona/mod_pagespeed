@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/cache/cache_batcher.h"
 
@@ -45,9 +46,7 @@ namespace net_instaweb {
 class CacheBatcher::Group {
  public:
   Group(CacheBatcher* batcher, int group_size)
-      : batcher_(batcher),
-        outstanding_lookups_(group_size) {
-  }
+      : batcher_(batcher), outstanding_lookups_(group_size) {}
 
   void Done() {
     if (outstanding_lookups_.BarrierIncrement(-1) == 0) {
@@ -66,15 +65,12 @@ class CacheBatcher::Group {
 class CacheBatcher::MultiCallback : public CacheInterface::Callback {
  public:
   MultiCallback(CacheBatcher* batcher, Group* group)
-      : batcher_(batcher),
-        group_(group) {
-  }
+      : batcher_(batcher), group_(group) {}
 
-  ~MultiCallback() override {
-  }
+  ~MultiCallback() override {}
 
-  bool ValidateCandidate(
-      const GoogleString& key, CacheInterface::KeyState state) override {
+  bool ValidateCandidate(const GoogleString& key,
+                         CacheInterface::KeyState state) override {
     if (saved_.empty()) {
       std::vector<CacheInterface::Callback*> callbacks;
       batcher_->ExtractInFlightKeys(key, &callbacks);
@@ -117,10 +113,7 @@ class CacheBatcher::MultiCallback : public CacheInterface::Callback {
   Group* group_;
   struct CallbackRecord {
     CallbackRecord(Callback* callback, bool available, KeyState state)
-        : callback(callback),
-          available(available),
-          state(state) {
-    }
+        : callback(callback), available(available), state(state) {}
     Callback* callback;
     bool available;
     KeyState state;
@@ -142,11 +135,9 @@ CacheBatcher::CacheBatcher(const Options& options, CacheInterface* cache,
       num_in_flight_keys_(0),
       num_pending_gets_(0),
       options_(options),
-      shutdown_(false) {
-}
+      shutdown_(false) {}
 
-CacheBatcher::~CacheBatcher() {
-}
+CacheBatcher::~CacheBatcher() {}
 
 GoogleString CacheBatcher::FormatName(StringPiece cache, int parallelism,
                                       int max) {
@@ -218,7 +209,7 @@ void CacheBatcher::Get(const GoogleString& key, Callback* callback) {
 }
 
 void CacheBatcher::GroupComplete() {
-  MultiGetRequest* request = NULL;
+  MultiGetRequest* request = nullptr;
   {
     ScopedMutex mutex(mutex_.get());
     if (queued_.empty()) {
@@ -253,7 +244,7 @@ void CacheBatcher::MoveQueuedKeys() {
 }
 
 CacheBatcher::MultiGetRequest* CacheBatcher::ConvertMapToRequest(
-    const CallbackMap &map) {
+    const CallbackMap& map) {
   Group* group = new Group(this, map.size());
   MultiGetRequest* request = new MultiGetRequest();
   for (const auto& pair : map) {
@@ -278,9 +269,7 @@ void CacheBatcher::Put(const GoogleString& key, const SharedString& value) {
   cache_->Put(key, value);
 }
 
-void CacheBatcher::Delete(const GoogleString& key) {
-  cache_->Delete(key);
-}
+void CacheBatcher::Delete(const GoogleString& key) { cache_->Delete(key); }
 
 void CacheBatcher::DecrementInFlightGets(int n) {
   ScopedMutex mutex(mutex_.get());

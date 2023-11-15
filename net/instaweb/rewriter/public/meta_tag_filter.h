@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: nforman@google.com (Naomi Forman)
 //
 // This provides the MetaTagFilter class which converts meta tags in html with
 // response headers.
@@ -39,12 +41,12 @@ class Variable;
 class MetaTagFilter : public CommonFilter {
  public:
   explicit MetaTagFilter(RewriteDriver* rewrite_driver);
-  virtual ~MetaTagFilter();
+  ~MetaTagFilter() override;
 
   static void InitStats(Statistics* stats);
 
-  virtual void StartDocumentImpl();
-  virtual void StartElementImpl(HtmlElement* element) {}
+  void StartDocumentImpl() override;
+  void StartElementImpl(HtmlElement* element) override {}
 
   // Rewrite tags in the following form:
   // <meta http-equiv="Content-Type" content="text/html" >
@@ -53,16 +55,15 @@ class MetaTagFilter : public CommonFilter {
   // "dangerous" to mutate the html (in case a script is looking for something),
   // we leave the tag in there.  As long as the tags and the headers match,
   // there should not be a performance hit.
-  virtual void EndElementImpl(HtmlElement* element);
-  virtual void Flush();
+  void EndElementImpl(HtmlElement* element) override;
+  void Flush() override;
 
-  virtual const char* Name() const { return "ConvertMetaTags"; }
+  const char* Name() const override { return "ConvertMetaTags"; }
 
   // Utility function to extract the mime type and/or charset from a meta tag
   // and update the response_headers if they are not set already.
-  static bool ExtractAndUpdateMetaTagDetails(
-      HtmlElement* element,
-      ResponseHeaders* response_headers);
+  static bool ExtractAndUpdateMetaTagDetails(HtmlElement* element,
+                                             ResponseHeaders* response_headers);
 
  private:
   ResponseHeaders* response_headers_;

@@ -1,19 +1,21 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
-//         lsong@google.com (Libo Song)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_APACHE_INSTAWEB_CONTEXT_H_
 #define PAGESPEED_APACHE_INSTAWEB_CONTEXT_H_
@@ -29,8 +31,8 @@
 // The httpd header must be after the
 // apache_rewrite_driver_factory.h. Otherwise, the compiler will
 // complain "strtoul_is_not_a_portable_function_use_strtol_instead".
-#include "pagespeed/apache/apache_httpd_includes.h"
 #include "apr_pools.h"
+#include "pagespeed/apache/apache_httpd_includes.h"
 
 namespace net_instaweb {
 
@@ -68,16 +70,14 @@ class InstawebContext {
   enum ContentDetectionState { kStart, kHtml, kNotHtml };
 
   // Takes ownership of request_headers.
-  InstawebContext(request_rec* request,
-                  RequestHeaders* request_headers,
+  InstawebContext(request_rec* request, RequestHeaders* request_headers,
                   const ContentType& content_type,
                   ApacheServerContext* server_context,
                   const GoogleString& base_url,
                   const RequestContextPtr& request_context,
                   const QueryParams& pagespeed_query_params,
                   const QueryParams& pagespeed_option_cookies,
-                  bool use_custom_options,
-                  const RewriteOptions& options);
+                  bool use_custom_options, const RewriteOptions& options);
   ~InstawebContext();
 
   void Rewrite(const char* input, int size);
@@ -85,15 +85,13 @@ class InstawebContext {
   void Finish();
 
   apr_bucket_brigade* bucket_brigade() const { return bucket_brigade_; }
-  ContentEncoding content_encoding() const { return  content_encoding_; }
+  ContentEncoding content_encoding() const { return content_encoding_; }
   ApacheServerContext* apache_server_context() { return server_context_; }
   const GoogleString& output() { return output_; }
   bool empty() const { return output_.empty(); }
   void clear() { output_.clear(); }  // TODO(jmarantz): needed?
 
-  ResponseHeaders* response_headers() {
-    return response_headers_.get();
-  }
+  ResponseHeaders* response_headers() { return response_headers_.get(); }
 
   bool sent_headers() { return sent_headers_; }
   void set_sent_headers(bool sent) { sent_headers_ = sent; }
@@ -130,11 +128,11 @@ class InstawebContext {
   ApacheServerContext* server_context_;
   RewriteDriver* rewrite_driver_;
   StringWriter string_writer_;
-  scoped_ptr<GzipInflater> inflater_;
+  std::unique_ptr<GzipInflater> inflater_;
   HtmlDetector html_detector_;
   GoogleString absolute_url_;
-  scoped_ptr<RequestHeaders> request_headers_;
-  scoped_ptr<ResponseHeaders> response_headers_;
+  std::unique_ptr<RequestHeaders> request_headers_;
+  std::unique_ptr<ResponseHeaders> response_headers_;
   bool started_parse_;
   bool sent_headers_;
   bool populated_headers_;

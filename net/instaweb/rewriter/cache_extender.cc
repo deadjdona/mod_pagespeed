@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/cache_extender.h"
 
@@ -22,7 +23,6 @@
 
 #include "base/logging.h"
 #include "net/instaweb/http/public/http_cache.h"
-#include "net/instaweb/http/public/log_record.h"
 #include "net/instaweb/rewriter/cached_result.pb.h"
 #include "net/instaweb/rewriter/public/domain_lawyer.h"
 #include "net/instaweb/rewriter/public/javascript_code_block.h"
@@ -51,6 +51,7 @@
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/kernel/http/semantic_type.h"
 #include "pagespeed/opt/logging/enums.pb.h"
+#include "pagespeed/opt/logging/log_record.h"
 
 namespace net_instaweb {
 class MessageHandler;
@@ -65,23 +66,24 @@ const int64 kMinThresholdMs = Timer::kMonthMs;
 
 class CacheExtender::Context : public SingleRewriteContext {
  public:
-  Context(CacheExtender* extender, RewriteDriver* driver,
-          RewriteContext* parent)
-      : SingleRewriteContext(driver, parent,
-                             NULL /* no resource context */),
+  Context(RewriteDriver::InputRole input_role, CacheExtender* extender,
+          RewriteDriver* driver, RewriteContext* parent)
+      : SingleRewriteContext(driver, parent, nullptr /* no resource context */),
+        input_role_(input_role),
         extender_(extender) {}
-  virtual ~Context() {}
+  ~Context() override {}
 
-  virtual void Render();
-  virtual void RewriteSingle(const ResourcePtr& input,
-                             const OutputResourcePtr& output);
-  virtual const char* id() const { return extender_->id(); }
-  virtual OutputResourceKind kind() const { return kOnTheFlyResource; }
+  bool PolicyPermitsRendering() const override;
+  void Render() override;
+  void RewriteSingle(const ResourcePtr& input,
+                     const OutputResourcePtr& output) override;
+  const char* id() const override { return extender_->id(); }
+  OutputResourceKind kind() const override { return kOnTheFlyResource; }
 
-  virtual void FixFetchFallbackHeaders(const CachedResult& cached_result,
-                               ResponseHeaders* headers) {
+  void FixFetchFallbackHeaders(const CachedResult& cached_result,
+                               ResponseHeaders* headers) override {
     SingleRewriteContext::FixFetchFallbackHeaders(cached_result, headers);
-    if (num_slots() != 1 || slot(0)->resource().get() == NULL) {
+    if (num_slots() != 1 || slot(0)->resource().get() == nullptr) {
       return;
     }
     ResourcePtr input_resource(slot(0)->resource());
@@ -95,18 +97,18 @@ class CacheExtender::Context : public SingleRewriteContext {
   // use search engines to look for .css and .js files, so adding it
   // there would just be a waste of bytes.
   bool ShouldAddCanonical(const ResourcePtr& input_resource) {
-    return input_resource->type() != NULL &&
+    return input_resource->type() != nullptr &&
            (input_resource->type()->IsImage() ||
             input_resource->type()->type() == ContentType::kPdf);
   }
 
  private:
+  RewriteDriver::InputRole input_role_;
   CacheExtender* extender_;
   DISALLOW_COPY_AND_ASSIGN(Context);
 };
 
-CacheExtender::CacheExtender(RewriteDriver* driver)
-    : RewriteFilter(driver) {
+CacheExtender::CacheExtender(RewriteDriver* driver) : RewriteFilter(driver) {
   Statistics* stats = server_context()->statistics();
   extension_count_ = stats->GetVariable(kCacheExtensions);
   not_cacheable_count_ = stats->GetVariable(kNotCacheable);
@@ -119,19 +121,20 @@ void CacheExtender::InitStats(Statistics* statistics) {
   statistics->AddVariable(kNotCacheable);
 }
 
-bool CacheExtender::ShouldRewriteResource(
-    const ResponseHeaders* headers, int64 now_ms,
-    const ResourcePtr& input_resource, const StringPiece& url,
-    CachedResult* result) const {
+bool CacheExtender::ShouldRewriteResource(const ResponseHeaders* headers,
+                                          int64 now_ms,
+                                          const ResourcePtr& input_resource,
+                                          const StringPiece& url,
+                                          CachedResult* result) const {
   const ContentType* input_resource_type = input_resource->type();
-  if (input_resource_type == NULL) {
+  if (input_resource_type == nullptr) {
     return false;
   }
   if (input_resource_type->type() == ContentType::kJavascript &&
       driver()->options()->avoid_renaming_introspective_javascript() &&
       JavascriptCodeBlock::UnsafeToRename(
           input_resource->ExtractUncompressedContents())) {
-    CHECK(result != NULL);
+    CHECK(result != nullptr);
     result->add_debug_message(JavascriptCodeBlock::kIntrospectionComment);
     return false;
   }
@@ -187,16 +190,17 @@ void CacheExtender::StartElementImpl(HtmlElement* element) {
         break;
       default:
         // Does the url in the attribute end in .pdf, ignoring query params?
-        if (attributes[i].url->DecodedValueOrNull() != NULL
-            && driver()->MayCacheExtendPdfs()) {
-        GoogleUrl url(driver()->base_url(),
-                      attributes[i].url->DecodedValueOrNull());
-        if (url.IsWebValid() && StringCaseEndsWith(
-                url.LeafSansQuery(), kContentTypePdf.file_extension())) {
-          may_load = true;
+        if (attributes[i].url->DecodedValueOrNull() != nullptr &&
+            driver()->MayCacheExtendPdfs()) {
+          GoogleUrl url(driver()->base_url(),
+                        attributes[i].url->DecodedValueOrNull());
+          if (url.IsWebValid() &&
+              StringCaseEndsWith(url.LeafSansQuery(),
+                                 kContentTypePdf.file_extension())) {
+            may_load = true;
+          }
         }
-      }
-      break;
+        break;
     }
     if (!may_load) {
       continue;
@@ -207,7 +211,7 @@ void CacheExtender::StartElementImpl(HtmlElement* element) {
     if (driver()->IsRewritable(element)) {
       ResourcePtr input_resource(CreateInputResourceOrInsertDebugComment(
           attributes[i].url->DecodedValueOrNull(), input_role, element));
-      if (input_resource.get() == NULL) {
+      if (input_resource.get() == nullptr) {
         continue;
       }
 
@@ -216,9 +220,10 @@ void CacheExtender::StartElementImpl(HtmlElement* element) {
         continue;
       }
 
-      ResourceSlotPtr slot(driver()->GetSlot(
-          input_resource, element, attributes[i].url));
-      Context* context = new Context(this, driver(), NULL /* not nested */);
+      ResourceSlotPtr slot(
+          driver()->GetSlot(input_resource, element, attributes[i].url));
+      Context* context =
+          new Context(input_role, this, driver(), nullptr /* not nested */);
       context->AddSlot(slot);
       driver()->InitiateRewrite(context);
     }
@@ -237,7 +242,8 @@ void CacheExtender::StartElementImpl(HtmlElement* element) {
         if (slot == nullptr) {
           continue;
         }
-        Context* context = new Context(this, driver(), nullptr /* !nested */);
+        Context* context = new Context(RewriteDriver::InputRole::kImg, this,
+                                       driver(), nullptr /* !nested */);
         context->AddSlot(RefCountedPtr<ResourceSlot>(slot));
         driver()->InitiateRewrite(context);
       }
@@ -245,9 +251,7 @@ void CacheExtender::StartElementImpl(HtmlElement* element) {
   }
 }
 
-bool CacheExtender::ComputeOnTheFly() const {
-  return true;
-}
+bool CacheExtender::ComputeOnTheFly() const { return true; }
 
 void CacheExtender::Context::RewriteSingle(
     const ResourcePtr& input_resource,
@@ -255,9 +259,22 @@ void CacheExtender::Context::RewriteSingle(
   if (ShouldAddCanonical(input_resource)) {
     AddLinkRelCanonical(input_resource, output_resource->response_headers());
   }
-  RewriteDone(
-      extender_->RewriteLoadedResource(
-          input_resource, output_resource, mutable_output_partition(0)), 0);
+  RewriteDone(extender_->RewriteLoadedResource(input_resource, output_resource,
+                                               mutable_output_partition(0)),
+              0);
+}
+
+bool CacheExtender::Context::PolicyPermitsRendering() const {
+  if (num_output_partitions() == 1 && output(0).get() != nullptr &&
+      output(0)->has_hash()) {
+    // This uses the InputRole rather than CspDirective variant to
+    // handle kUnknown (and to get bonus handling of kReconstruction,
+    // which wouldn't actually call this, but for which we still need to
+    // override).
+    return Driver()->IsLoadPermittedByCsp(GoogleUrl(output(0)->url()),
+                                          input_role_);
+  }
+  return true;  // e.g. failure cases -> still want to permit error to render.
 }
 
 void CacheExtender::Context::Render() {
@@ -266,26 +283,24 @@ void CacheExtender::Context::Render() {
     // Log applied rewriter id. Here, we care only about non-nested
     // cache extensions, and that too, those occurring in synchronous
     // flows only.
-    if (Driver() != NULL) {
+    if (Driver() != nullptr) {
       ResourceSlotPtr the_slot = slot(0);
-      if (the_slot->resource().get() != NULL &&
-          the_slot->resource()->type() != NULL) {
+      if (the_slot->resource().get() != nullptr &&
+          the_slot->resource()->type() != nullptr) {
         const char* filter_id = id();
         const ContentType* type = the_slot->resource()->type();
         if (type->type() == ContentType::kCss) {
-          filter_id = RewriteOptions::FilterId(
-              RewriteOptions::kExtendCacheCss);
+          filter_id = RewriteOptions::FilterId(RewriteOptions::kExtendCacheCss);
         } else if (type->type() == ContentType::kJavascript) {
-          filter_id = RewriteOptions::FilterId(
-              RewriteOptions::kExtendCacheScripts);
+          filter_id =
+              RewriteOptions::FilterId(RewriteOptions::kExtendCacheScripts);
         } else if (type->IsImage()) {
-          filter_id = RewriteOptions::FilterId(
-              RewriteOptions::kExtendCacheImages);
+          filter_id =
+              RewriteOptions::FilterId(RewriteOptions::kExtendCacheImages);
         }
         // TODO(anupama): Log cache extension for pdfs etc.
         Driver()->log_record()->SetRewriterLoggingStatus(
-            filter_id,
-            the_slot->resource()->url(),
+            filter_id, the_slot->resource()->url(),
             RewriterApplication::APPLIED_OK);
       }
     }
@@ -293,8 +308,7 @@ void CacheExtender::Context::Render() {
 }
 
 RewriteResult CacheExtender::RewriteLoadedResource(
-    const ResourcePtr& input_resource,
-    const OutputResourcePtr& output_resource,
+    const ResourcePtr& input_resource, const OutputResourcePtr& output_resource,
     // TODO(jmaessen): does this belong in CacheExtender::Context? to this
     // method and ShouldRewriteResource.
     CachedResult* result) {
@@ -311,7 +325,7 @@ RewriteResult CacheExtender::RewriteLoadedResource(
   // Assume that it may have cookies; see comment in
   // CacheableResourceBase::IsValidAndCacheableImpl.
   RequestHeaders::Properties req_properties;
-  const ContentType* output_type = NULL;
+  const ContentType* output_type = nullptr;
   if (!server_context()->http_cache()->force_caching() &&
       !headers->IsProxyCacheable(
           req_properties,
@@ -322,8 +336,8 @@ RewriteResult CacheExtender::RewriteLoadedResource(
     // If you change this behavior that test MUST be updated as it covers
     // security.
     not_cacheable_count_->Add(1);
-  } else if (ShouldRewriteResource(
-      headers, now_ms, input_resource, url, result)) {
+  } else if (ShouldRewriteResource(headers, now_ms, input_resource, url,
+                                   result)) {
     // We must be careful what Content-Types we allow to be cache extended.
     // Specifically, we do not want to cache extend any Content-Types that
     // could execute scripts when loaded in a browser because that could
@@ -369,8 +383,8 @@ RewriteResult CacheExtender::RewriteLoadedResource(
   GoogleUrl input_resource_gurl(input_resource->url());
   if (output_type->type() == ContentType::kCss) {
     switch (driver()->ResolveCssUrls(input_resource_gurl,
-                                     output_resource->resolved_base(),
-                                     contents, &writer, message_handler)) {
+                                     output_resource->resolved_base(), contents,
+                                     &writer, message_handler)) {
       case RewriteDriver::kNoResolutionNeeded:
         break;
       case RewriteDriver::kWriteFailed:
@@ -384,13 +398,10 @@ RewriteResult CacheExtender::RewriteLoadedResource(
     }
   }
 
-  server_context()->MergeNonCachingResponseHeaders(
-      input_resource, output_resource);
-  if (driver()->Write(ResourceVector(1, input_resource),
-                      contents,
-                      output_type,
-                      input_resource->charset(),
-                      output_resource.get())) {
+  server_context()->MergeNonCachingResponseHeaders(input_resource,
+                                                   output_resource);
+  if (driver()->Write(ResourceVector(1, input_resource), contents, output_type,
+                      input_resource->charset(), output_resource.get())) {
     return kRewriteOk;
   } else {
     return kRewriteFailed;
@@ -398,12 +409,14 @@ RewriteResult CacheExtender::RewriteLoadedResource(
 }
 
 RewriteContext* CacheExtender::MakeRewriteContext() {
-  return new Context(this, driver(), NULL /*not nested*/);
+  return new Context(RewriteDriver::InputRole::kReconstruction, this, driver(),
+                     nullptr /*not nested*/);
 }
 
-RewriteContext* CacheExtender::MakeNestedContext(
-    RewriteContext* parent, const ResourceSlotPtr& slot) {
-  Context* context = new Context(this, NULL /* driver*/, parent);
+RewriteContext* CacheExtender::MakeNestedContext(RewriteContext* parent,
+                                                 const ResourceSlotPtr& slot) {
+  Context* context = new Context(RewriteDriver::InputRole::kUnknown, this,
+                                 nullptr /* driver*/, parent);
   context->AddSlot(slot);
   return context;
 }

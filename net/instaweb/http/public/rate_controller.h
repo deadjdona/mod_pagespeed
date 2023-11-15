@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: nikhilmadan@google.com (Nikhil Madan)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_RATE_CONTROLLER_H_
 #define NET_INSTAWEB_HTTP_PUBLIC_RATE_CONTROLLER_H_
@@ -60,8 +61,7 @@ class RateController {
   RateController(int max_global_queue_size,
                  int per_host_outgoing_request_threshold,
                  int per_host_queued_request_threshold,
-                 ThreadSystem* thread_system,
-                 Statistics* statistics);
+                 ThreadSystem* thread_system, Statistics* statistics);
 
   virtual ~RateController();
 
@@ -71,10 +71,8 @@ class RateController {
 
   // Applies our shaping policies, and either (eventually) asks fetcher to
   // fetch the given URL or drops it.
-  void Fetch(UrlAsyncFetcher* fetcher,
-             const GoogleString& url,
-             MessageHandler* message_handler,
-             AsyncFetch* fetch);
+  void Fetch(UrlAsyncFetcher* fetcher, const GoogleString& url,
+             MessageHandler* message_handler, AsyncFetch* fetch);
 
   // Initializes statistics variables associated with this class.
   static void InitStats(Statistics* statistics);
@@ -101,7 +99,7 @@ class RateController {
 
   // Map containing per-host information tracking outgoing and queued fetches.
   HostFetchInfoMap fetch_info_map_ GUARDED_BY(mutex_);
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
 
   TimedVariable* queued_fetch_count_;
   TimedVariable* dropped_fetch_count_;

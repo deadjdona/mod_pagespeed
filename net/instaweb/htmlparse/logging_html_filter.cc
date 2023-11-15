@@ -1,22 +1,24 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmaessen@google.com (Jan Maessen)
-
 #include "net/instaweb/htmlparse/public/logging_html_filter.h"
+
 #include "net/instaweb/htmlparse/public/statistics_log.h"
 #include "pagespeed/kernel/html/html_element.h"
 
@@ -27,21 +29,17 @@ namespace {
 // Must match up with enum Statistic in logging_html_filter.h;
 // is this bad for maintenance?
 const char* kStatisticNames[] = {
-  "explicit_close", "implicit_close", "brief_close", "closed", "unclosed",
-  "spurious_close", "tags", "cdata", "comments", "directives", "documents",
-  "IE_directives",
+    "explicit_close", "implicit_close", "brief_close", "closed",
+    "unclosed",       "spurious_close", "tags",        "cdata",
+    "comments",       "directives",     "documents",   "IE_directives",
 };
-}
+}  // namespace
 
 namespace net_instaweb {
 
-LoggingFilter::LoggingFilter() {
-  Reset();
-}
+LoggingFilter::LoggingFilter() { Reset(); }
 
-void LoggingFilter::StartDocument() {
-  ++stats_[NUM_DOCUMENTS];
-}
+void LoggingFilter::StartDocument() { ++stats_[NUM_DOCUMENTS]; }
 
 void LoggingFilter::StartElement(HtmlElement* element) {
   // Does EndElement get called for singleton elements?
@@ -84,9 +82,7 @@ void LoggingFilter::EndElement(HtmlElement* element) {
   }
 }
 
-void LoggingFilter::Cdata(HtmlCdataNode* cdata) {
-  ++stats_[NUM_CDATA];
-}
+void LoggingFilter::Cdata(HtmlCdataNode* cdata) { ++stats_[NUM_CDATA]; }
 
 void LoggingFilter::Comment(HtmlCommentNode* comment) {
   ++stats_[NUM_COMMENTS];
@@ -101,7 +97,7 @@ void LoggingFilter::Directive(HtmlDirectiveNode* directive) {
 }
 
 // Logging, diffing, and aggregation
-void LoggingFilter::LogStatistics(StatisticsLog *statistics_log) const {
+void LoggingFilter::LogStatistics(StatisticsLog* statistics_log) const {
   for (int statistic = MIN_STAT; statistic < MAX_STAT; ++statistic) {
     statistics_log->LogStat(kStatisticNames[statistic], stats_[statistic]);
   }

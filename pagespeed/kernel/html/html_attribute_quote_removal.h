@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmaessen@google.com (Jan Maessen)
 
 #ifndef PAGESPEED_KERNEL_HTML_HTML_ATTRIBUTE_QUOTE_REMOVAL_H_
 #define PAGESPEED_KERNEL_HTML_HTML_ATTRIBUTE_QUOTE_REMOVAL_H_
@@ -42,16 +43,14 @@ class HtmlParse;
 class HtmlAttributeQuoteRemoval : public EmptyHtmlFilter {
  public:
   explicit HtmlAttributeQuoteRemoval(HtmlParse* html_parse);
-  virtual ~HtmlAttributeQuoteRemoval();
+  ~HtmlAttributeQuoteRemoval() override;
   // Given context in object, does attribute value val require quotes?
-  bool NeedsQuotes(const char *val);
-  virtual void StartElement(HtmlElement* element);
+  bool NeedsQuotes(const char* val);
+  void StartElement(HtmlElement* element) override;
   // # of quote pairs removed from attributes in *all* documents processed.
-  int total_quotes_removed() const {
-    return total_quotes_removed_;
-  }
+  int total_quotes_removed() const { return total_quotes_removed_; }
 
-  virtual const char* Name() const { return "HtmlAttributeQuoteRemoval"; }
+  const char* Name() const override { return "HtmlAttributeQuoteRemoval"; }
 
  private:
   int total_quotes_removed_;

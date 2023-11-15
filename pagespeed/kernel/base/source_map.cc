@@ -1,21 +1,23 @@
-// Copyright 2013 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: sligocki@google.com (Shawn Ligocki)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/kernel/base/source_map.h"
-
 
 #include "base/logging.h"
 #include "pagespeed/kernel/base/basictypes.h"
@@ -47,7 +49,7 @@ GoogleString EncodeVlq(const int32 input_val) {
   // bottom 5 bits are data bits.
   static const int kNumDataBits = 5;
   static const int kContinuationBit = 1 << kNumDataBits;  // 100000
-  static const int kDataMask = kContinuationBit - 1;       // 011111
+  static const int kDataMask = kContinuationBit - 1;      // 011111
 
 #ifndef NDEBUG
   for (int i = 0; i < kNumDataBits; ++i) {
@@ -89,8 +91,7 @@ GoogleString EncodeVlq(const int32 input_val) {
 
 // Encode to the compact mappings format, which is a ;-separated list of
 // ,-separated lists of base64 VLQ values.
-bool EncodeMappings(const MappingVector& mappings,
-                    GoogleString* result) {
+bool EncodeMappings(const MappingVector& mappings, GoogleString* result) {
   int current_gen_line = 0;
   bool first_segment_in_line = true;
   for (int i = 0, mappings_size = mappings.size(); i < mappings_size; ++i) {
@@ -147,8 +148,7 @@ bool EncodeMappings(const MappingVector& mappings,
 
     // Segments are comma-separated, but don't add a trailing comma nor a comma
     // if a semicolon (line change) will be added.
-    if (i + 1 < mappings_size &&
-        mappings[i + 1].gen_line == current_gen_line) {
+    if (i + 1 < mappings_size && mappings[i + 1].gen_line == current_gen_line) {
       *result += ",";
     }
   }
@@ -174,10 +174,8 @@ GoogleString PercentEncode(StringPiece url) {
   return result;
 }
 
-bool Encode(StringPiece generated_url,
-            StringPiece source_url,
-            const MappingVector& mappings,
-            GoogleString* encoded_source_map) {
+bool Encode(StringPiece generated_url, StringPiece source_url,
+            const MappingVector& mappings, GoogleString* encoded_source_map) {
   GoogleString encoded_mappings;
   bool success = EncodeMappings(mappings, &encoded_mappings);
   if (success) {
@@ -195,9 +193,11 @@ bool Encode(StringPiece generated_url,
     // Standard XSSI protection.
     // http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/#toc-xssi
     *encoded_source_map += ")]}'\n";
-
-    Json::FastWriter writer;
-    *encoded_source_map += writer.write(json);
+    Json::StreamWriterBuilder builder;
+    builder["commentStyle"] = "None";
+    builder["indentation"] = "";
+    *encoded_source_map +=
+        Json::writeString(builder, json);  //xriter.write(json);
   }
   return success;
 }

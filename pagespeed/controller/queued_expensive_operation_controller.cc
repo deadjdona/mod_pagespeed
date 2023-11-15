@@ -1,18 +1,21 @@
-// Copyright 2015 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/controller/queued_expensive_operation_controller.h"
 
@@ -38,8 +41,7 @@ QueuedExpensiveOperationController::QueuedExpensiveOperationController(
       queued_operations_counter_(
           stats->GetUpDownCounter(kQueuedExpensiveOperations)),
       permitted_operations_counter_(
-          stats->GetTimedVariable(kPermittedExpensiveOperations)) {
-}
+          stats->GetTimedVariable(kPermittedExpensiveOperations)) {}
 
 QueuedExpensiveOperationController::~QueuedExpensiveOperationController() {
   // queue_ is *supposed* to be empty at this point. In case it's not, we
@@ -66,7 +68,7 @@ void QueuedExpensiveOperationController::InitStats(Statistics* statistics) {
 void QueuedExpensiveOperationController::ScheduleExpensiveOperation(
     Function* callback) {
   ScopedMutex lock(mutex_.get());
-  CHECK(callback != NULL);
+  CHECK(callback != nullptr);
 
   // If we are configured to disallow all expensive operations, immediately deny
   // the request and don't queue it.
@@ -98,7 +100,7 @@ void QueuedExpensiveOperationController::NotifyExpensiveOperationComplete() {
     CHECK_LT(num_in_progress_, max_in_progress_);
   }
   Function* callback = Dequeue();
-  if (callback != NULL) {
+  if (callback != nullptr) {
     IncrementInProgress();
     lock.Release();
     callback->CallRun();
@@ -112,7 +114,7 @@ void QueuedExpensiveOperationController::Enqueue(Function* callback) {
 }
 
 Function* QueuedExpensiveOperationController::Dequeue() {
-  Function* result = NULL;
+  Function* result = nullptr;
   if (!queue_.empty()) {
     result = queue_.front();
     queue_.pop();

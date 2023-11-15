@@ -1,28 +1,29 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmaessen@google.com (Jan Maessen)
 
 #ifndef PAGESPEED_KERNEL_UTIL_FILE_SYSTEM_LOCK_MANAGER_H_
 #define PAGESPEED_KERNEL_UTIL_FILE_SYSTEM_LOCK_MANAGER_H_
 
 #include "pagespeed/kernel/base/basictypes.h"
+#include "pagespeed/kernel/base/named_lock_manager.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
-#include "pagespeed/kernel/base/named_lock_manager.h"
 #include "pagespeed/kernel/thread/scheduler_based_abstract_lock.h"
 
 namespace net_instaweb {
@@ -42,11 +43,9 @@ class FileSystemLockManager : public NamedLockManager {
   // It does not assume ownership of the passed-in constructor arguments.
   // (Except it does copy in base_path). The caller is responsible for ensuring
   // that base_path exists.
-  FileSystemLockManager(FileSystem* file_system,
-                        const StringPiece& base_path,
-                        Scheduler* scheduler,
-                        MessageHandler* handler);
-  virtual ~FileSystemLockManager();
+  FileSystemLockManager(FileSystem* file_system, const StringPiece& base_path,
+                        Scheduler* scheduler, MessageHandler* handler);
+  ~FileSystemLockManager() override;
 
   // Multiple lock objects with the same name will manage the same underlying
   // lock.  Lock names must be legal file names according to file_system.
@@ -57,7 +56,7 @@ class FileSystemLockManager : public NamedLockManager {
   // remnants of dead locks.  A given NamedLock object should Lock and Unlock
   // in matched pairs; DO NOT use separate NamedLock objects created with the
   // same name to perform a Lock and the corresponding Unlock.
-  virtual SchedulerBasedAbstractLock* CreateNamedLock(const StringPiece& name);
+  SchedulerBasedAbstractLock* CreateNamedLock(const StringPiece& name) override;
 
   // Simple accessors for constructor arguments
   FileSystem* file_system() const { return file_system_; }

@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: mdsteele@google.com (Matthew D. Steele)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CSS_INLINE_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CSS_INLINE_FILTER_H_
@@ -44,23 +45,23 @@ class CssInlineFilter : public CommonFilter {
   static const char kNumCssInlined[];
 
   explicit CssInlineFilter(RewriteDriver* driver);
-  virtual ~CssInlineFilter();
+  ~CssInlineFilter() override;
 
-  virtual void StartDocumentImpl();
-  virtual void StartElementImpl(HtmlElement* element) {}
-  virtual void EndElementImpl(HtmlElement* element);
-  virtual const char* Name() const { return "InlineCss"; }
+  void StartDocumentImpl() override;
+  void StartElementImpl(HtmlElement* element) override;
+  void EndElementImpl(HtmlElement* element) override;
+  const char* Name() const override { return "InlineCss"; }
   // Inlining css from unauthorized domains into HTML is considered
   // safe because it does not cause any new content to be executed compared
   // to the unoptimized page.
-  virtual RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
-      const {
+  RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
+      const override {
     return driver()->options()->HasInlineUnauthorizedResourceType(
-               semantic_type::kStylesheet) ?
-           RewriteDriver::kInlineUnauthorizedResources :
-           RewriteDriver::kInlineOnlyAuthorizedResources;
+               semantic_type::kStylesheet)
+               ? RewriteDriver::kInlineUnauthorizedResources
+               : RewriteDriver::kInlineOnlyAuthorizedResources;
   }
-  virtual bool IntendedForInlining() const { return true; }
+  bool IntendedForInlining() const override { return true; }
 
   static void InitStats(Statistics* statistics);
   static bool HasClosingStyleTag(StringPiece contents);
@@ -93,6 +94,7 @@ class CssInlineFilter : public CommonFilter {
   GoogleString domain_;
 
   Variable* num_css_inlined_;
+  bool in_body_;
 
   DISALLOW_COPY_AND_ASSIGN(CssInlineFilter);
 };

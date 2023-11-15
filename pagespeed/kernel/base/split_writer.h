@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef PAGESPEED_KERNEL_BASE_SPLIT_WRITER_H_
 #define PAGESPEED_KERNEL_BASE_SPLIT_WRITER_H_
@@ -31,18 +32,17 @@ class MessageHandler;
 class SplitWriter : public Writer {
  public:
   SplitWriter(Writer* sub_writer1, Writer* sub_writer2)
-      : writer1_(sub_writer1), writer2_(sub_writer2) {
-  }
+      : writer1_(sub_writer1), writer2_(sub_writer2) {}
 
-  virtual ~SplitWriter();
+  ~SplitWriter() override;
 
-  virtual bool Write(const StringPiece& str, MessageHandler* handler) {
+  bool Write(const StringPiece& str, MessageHandler* handler) override {
     bool ret = writer1_->Write(str, handler);
     ret &= writer2_->Write(str, handler);
     return ret;
   }
 
-  virtual bool Flush(MessageHandler* handler) {
+  bool Flush(MessageHandler* handler) override {
     bool ret = writer1_->Flush(handler);
     ret &= writer2_->Flush(handler);
     return ret;

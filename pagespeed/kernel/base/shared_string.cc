@@ -1,20 +1,22 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //
 // Implements a ref-counted string class, with full sharing.  This
 // class does *not* implement copy-on-write semantics, however, it
@@ -27,18 +29,16 @@
 #include <algorithm>  // for std::min, std::max
 
 #include "base/logging.h"
+#include "pagespeed/kernel/base/ref_counted_ptr.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
-#include "pagespeed/kernel/base/ref_counted_ptr.h"
 
 namespace net_instaweb {
 
-SharedString::SharedString() : skip_(0), size_(0) {
-}
+SharedString::SharedString() : skip_(0), size_(0) {}
 
 SharedString::SharedString(const StringPiece& str)
-    : skip_(0),
-      size_(str.size()) {
+    : skip_(0), size_(str.size()) {
   GoogleString* storage = ref_string_.get();
   str.CopyToString(storage);
 }
@@ -47,27 +47,20 @@ SharedString::SharedString(const StringPiece& str)
 // ctor above causes an extra copy compared with string implementations that
 // use copy-on-write.  So we make an explicit GoogleString constructor.
 SharedString::SharedString(const GoogleString& str)
-    : ref_string_(str),
-      skip_(0),
-      size_(str.size()) {
-}
+    : ref_string_(str), skip_(0), size_(str.size()) {}
 
 // Given the two constructors above, it is ambiguous which one gets
 // called when passed a string-literal, so making an explicit const char*
 // constructor eliminates the ambiguity.  This is likely beneficial mostly
 // for tests.
-SharedString::SharedString(const char* str)
-    : skip_(0) {
+SharedString::SharedString(const char* str) : skip_(0) {
   GoogleString* storage = ref_string_.get();
   *storage = str;
   size_ = storage->size();
 }
 
 SharedString::SharedString(const SharedString& src)
-    : ref_string_(src.ref_string_),
-      skip_(src.skip_),
-      size_(src.size_) {
-}
+    : ref_string_(src.ref_string_), skip_(src.skip_), size_(src.size_) {}
 
 SharedString& SharedString::operator=(const SharedString& src) {
   if (&src != this) {
@@ -106,8 +99,7 @@ void SharedString::UniquifyIfTruncated() {
 }
 
 void SharedString::Append(const char* new_data, size_t new_size) {
-  DCHECK((new_data + new_size) <= data() ||
-         (data() + size() < new_data))
+  DCHECK((new_data + new_size) <= data() || (data() + size() < new_data))
       << "Append must be given non-overlapping strings";
   UniquifyIfTruncated();
   ref_string_->append(new_data, new_size);

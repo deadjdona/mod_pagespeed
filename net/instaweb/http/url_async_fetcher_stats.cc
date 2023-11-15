@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: morlovich@google.com (Maksim Orlovich)
 
 #include "net/instaweb/http/public/url_async_fetcher_stats.h"
 
@@ -42,27 +43,23 @@ namespace net_instaweb {
 
 class UrlAsyncFetcherStats::StatsAsyncFetch : public SharedAsyncFetch {
  public:
-  StatsAsyncFetch(UrlAsyncFetcherStats* stats_fetcher,
-                  AsyncFetch* base_fetch)
-      : SharedAsyncFetch(base_fetch),
-        stats_fetcher_(stats_fetcher),
-        size_(0) {
+  StatsAsyncFetch(UrlAsyncFetcherStats* stats_fetcher, AsyncFetch* base_fetch)
+      : SharedAsyncFetch(base_fetch), stats_fetcher_(stats_fetcher), size_(0) {
     start_time_us_ = stats_fetcher_->timer_->NowUs();
   }
 
-  virtual ~StatsAsyncFetch() {
-  }
+  ~StatsAsyncFetch() override {}
 
-  virtual void HandleHeadersComplete() {
+  void HandleHeadersComplete() override {
     stats_fetcher_->approx_header_bytes_fetched_->Add(
         response_headers()->SizeEstimate());
     SharedAsyncFetch::HandleHeadersComplete();
   }
 
-  virtual void HandleDone(bool success) {
+  void HandleDone(bool success) override {
     int64 end_time_us = stats_fetcher_->timer_->NowUs();
-    stats_fetcher_->fetch_latency_us_histogram_->Add(
-        end_time_us - start_time_us_);
+    stats_fetcher_->fetch_latency_us_histogram_->Add(end_time_us -
+                                                     start_time_us_);
     stats_fetcher_->fetches_->Add(1);
     stats_fetcher_->bytes_fetched_->Add(size_);
 
@@ -70,8 +67,8 @@ class UrlAsyncFetcherStats::StatsAsyncFetch : public SharedAsyncFetch {
     delete this;
   }
 
-  virtual bool HandleWrite(const StringPiece& content,
-                           MessageHandler* handler) {
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override {
     size_ += content.size();
     return SharedAsyncFetch::HandleWrite(content, handler);
   }
@@ -86,12 +83,11 @@ class UrlAsyncFetcherStats::StatsAsyncFetch : public SharedAsyncFetch {
 
 UrlAsyncFetcherStats::UrlAsyncFetcherStats(StringPiece prefix,
                                            UrlAsyncFetcher* base_fetcher,
-                                           Timer* timer,
-                                           Statistics* statistics)
+                                           Timer* timer, Statistics* statistics)
     : base_fetcher_(base_fetcher),
       timer_(timer),
-      fetch_latency_us_histogram_(statistics->GetHistogram(
-          StrCat(prefix, kFetchLatencyUsHistogram))),
+      fetch_latency_us_histogram_(
+          statistics->GetHistogram(StrCat(prefix, kFetchLatencyUsHistogram))),
       fetches_(statistics->GetVariable(StrCat(prefix, kFetches))),
       bytes_fetched_(statistics->GetVariable(StrCat(prefix, kBytesFetched))),
       approx_header_bytes_fetched_(
@@ -103,8 +99,7 @@ UrlAsyncFetcherStats::UrlAsyncFetcherStats(StringPiece prefix,
       << "gzip itself, but rather letting UrlAsyncFetcherStats handle it";
 }
 
-UrlAsyncFetcherStats::~UrlAsyncFetcherStats() {
-}
+UrlAsyncFetcherStats::~UrlAsyncFetcherStats() {}
 
 void UrlAsyncFetcherStats::InitStats(StringPiece prefix,
                                      Statistics* statistics) {
@@ -120,7 +115,6 @@ bool UrlAsyncFetcherStats::SupportsHttps() const {
   return base_fetcher_->SupportsHttps();
 }
 
-
 void UrlAsyncFetcherStats::Fetch(const GoogleString& url,
                                  MessageHandler* message_handler,
                                  AsyncFetch* fetch) {
@@ -128,12 +122,8 @@ void UrlAsyncFetcherStats::Fetch(const GoogleString& url,
   base_fetcher_->Fetch(url, message_handler, new StatsAsyncFetch(this, fetch));
 }
 
-int64 UrlAsyncFetcherStats::timeout_ms() {
-  return base_fetcher_->timeout_ms();
-}
+int64 UrlAsyncFetcherStats::timeout_ms() { return base_fetcher_->timeout_ms(); }
 
-void UrlAsyncFetcherStats::ShutDown() {
-  base_fetcher_->ShutDown();
-}
+void UrlAsyncFetcherStats::ShutDown() { base_fetcher_->ShutDown(); }
 
 }  // namespace net_instaweb

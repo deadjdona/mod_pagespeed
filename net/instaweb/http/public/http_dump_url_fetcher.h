@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_HTTP_DUMP_URL_FETCHER_H_
 #define NET_INSTAWEB_HTTP_PUBLIC_HTTP_DUMP_URL_FETCHER_H_
@@ -53,33 +54,28 @@ class HttpDumpUrlFetcher : public UrlAsyncFetcher {
 
   HttpDumpUrlFetcher(const StringPiece& root_dir, FileSystem* file_system,
                      Timer* timer);
-  virtual ~HttpDumpUrlFetcher();
+  ~HttpDumpUrlFetcher() override;
 
   // Converts URL into filename the way that Latency Lab does.
   // Note: root_dir_ must be standardized to have a / at end already.
   static bool GetFilenameFromUrl(const StringPiece& root_dir,
-                                 const GoogleUrl& url,
-                                 GoogleString* filename,
+                                 const GoogleUrl& url, GoogleString* filename,
                                  MessageHandler* message_handler);
 
   // Non-static version that uses the fetcher's root dir.
-  bool GetFilename(const GoogleUrl& url,
-                   GoogleString* filename,
+  bool GetFilename(const GoogleUrl& url, GoogleString* filename,
                    MessageHandler* message_handler) {
     return GetFilenameFromUrl(root_dir_, url, filename, message_handler);
   }
 
   // This is a synchronous/blocking implementation.
-  virtual void Fetch(const GoogleString& url,
-                     MessageHandler* message_handler,
-                     AsyncFetch* fetch);
+  void Fetch(const GoogleString& url, MessageHandler* message_handler,
+             AsyncFetch* fetch) override;
 
   // Parse file into response_headers and response_writer as if it were bytes
   // off the wire.
-  bool ParseFile(FileSystem::InputFile* file,
-                 ResponseHeaders* response_headers,
-                 Writer* response_writer,
-                 MessageHandler* handler);
+  bool ParseFile(FileSystem::InputFile* file, ResponseHeaders* response_headers,
+                 Writer* response_writer, MessageHandler* handler);
 
   // Helper function to return a generic error response.
   void RespondError(ResponseHeaders* response_headers, Writer* response_writer,
@@ -96,7 +92,7 @@ class HttpDumpUrlFetcher : public UrlAsyncFetcher {
   // Response to use if something goes wrong.
   GoogleString error_body_;
 
-  scoped_ptr<StringSet> urls_;
+  std::unique_ptr<StringSet> urls_;
 
   DISALLOW_COPY_AND_ASSIGN(HttpDumpUrlFetcher);
 };

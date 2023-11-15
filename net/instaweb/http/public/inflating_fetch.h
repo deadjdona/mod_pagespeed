@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_INFLATING_FETCH_H_
 #define NET_INSTAWEB_HTTP_PUBLIC_INFLATING_FETCH_H_
@@ -44,7 +45,7 @@ class MessageHandler;
 class InflatingFetch : public SharedAsyncFetch {
  public:
   explicit InflatingFetch(AsyncFetch* fetch);
-  virtual ~InflatingFetch();
+  ~InflatingFetch() override;
 
   // Adds accept-encoding:gzip to the request headers sent to the
   // origin.  The data is inflated as we Write it.  If deflate
@@ -58,8 +59,7 @@ class InflatingFetch : public SharedAsyncFetch {
   // Notes: dest and src should not be the same object.  If the
   // unzip fails, you may need to link src into dest.
   static bool UnGzipValueIfCompressed(const HTTPValue& src,
-                                      ResponseHeaders* headers,
-                                      HTTPValue* dest,
+                                      ResponseHeaders* headers, HTTPValue* dest,
                                       MessageHandler* handler);
   // GZip compress HTTPValue, updating the headers reflect the new
   // state, output to compressed_value. Returns true if the value is
@@ -71,13 +71,13 @@ class InflatingFetch : public SharedAsyncFetch {
  protected:
   // If inflation is required, inflates and passes bytes to the linked fetch,
   // otherwise just passes bytes.
-  virtual bool HandleWrite(const StringPiece& sp, MessageHandler* handler);
+  bool HandleWrite(const StringPiece& sp, MessageHandler* handler) override;
 
   // Analyzes headers and depending on the request settings and flags will
   // either setup inflater or not.
-  virtual void HandleHeadersComplete();
-  virtual void HandleDone(bool success);
-  virtual void Reset();
+  void HandleHeadersComplete() override;
+  void HandleDone(bool success) override;
+  void Reset() override;
 
  private:
   void InitInflater(GzipInflater::InflateType, const StringPiece& value);
@@ -86,7 +86,7 @@ class InflatingFetch : public SharedAsyncFetch {
   // pass it to the caller as is, since that is what caller requested.
   bool IsCompressionAllowedInRequest();
 
-  scoped_ptr<GzipInflater> inflater_;
+  std::unique_ptr<GzipInflater> inflater_;
 
   // Caching gate inside IsCompressionAllowedInRequest().
   bool request_checked_for_accept_encoding_;

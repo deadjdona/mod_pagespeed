@@ -1,17 +1,20 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 // Authors: jmarantz@google.com (Joshua Marantz)
@@ -20,7 +23,7 @@
 #include "net/instaweb/http/public/external_url_fetcher.h"
 
 #include <cerrno>
-#include <cstdio>                      // for pclose, popen, FILE
+#include <cstdio>  // for pclose, popen, FILE
 
 #include "base/logging.h"
 #include "net/instaweb/http/public/async_fetch.h"
@@ -74,32 +77,30 @@ void ExternalUrlFetcher::AppendHeaders(const RequestHeaders& request_headers,
   }
 }
 
-void ExternalUrlFetcher::Fetch(
-    const GoogleString& url, MessageHandler* handler, AsyncFetch* fetch) {
+void ExternalUrlFetcher::Fetch(const GoogleString& url, MessageHandler* handler,
+                               AsyncFetch* fetch) {
   const RequestHeaders& request_headers = *fetch->request_headers();
   ResponseHeaders* response_headers = fetch->response_headers();
 
   // Use default user-agent if none is set in headers.
   ConstStringStarVector values;
   request_headers.Lookup("user-agent", &values);
-  const char* user_agent = values.empty() ? kDefaultUserAgent : NULL;
+  const char* user_agent = values.empty() ? kDefaultUserAgent : nullptr;
 
   StringVector escaped_headers;
   AppendHeaders(request_headers, &escaped_headers);
 
   GoogleString escaped_url;
   BackslashEscape(url, kEscapeChars, &escaped_url);
-  GoogleString cmd = ConstructFetchCommand(escaped_url,
-                                           user_agent,
-                                           escaped_headers);
-
+  GoogleString cmd =
+      ConstructFetchCommand(escaped_url, user_agent, escaped_headers);
 
   handler->Message(kInfo, "%s --... %s\n", GetFetchLabel(), url.c_str());
   VLOG(2) << "Running: " << cmd;
   FILE* cmd_stdout = popen(cmd.c_str(), "r");
 
   bool ret = false;
-  if (cmd_stdout == NULL) {
+  if (cmd_stdout == nullptr) {
     handler->Message(kError, "Fetch command popen failed on url %s: %s",
                      url.c_str(), strerror(errno));
   } else {

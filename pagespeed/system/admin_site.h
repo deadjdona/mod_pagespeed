@@ -1,19 +1,21 @@
-// Copyright 2013 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jefftk@google.com (Jeff Kaufman)
-// Author: xqyin@google.com (XiaoQian Yin)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_SYSTEM_ADMIN_SITE_H_
 #define PAGESPEED_SYSTEM_ADMIN_SITE_H_
@@ -54,8 +56,7 @@ class AdminSite {
   AdminSite(StaticAssetManager* static_asset_manager, Timer* timer,
             MessageHandler* message_handler);
 
-  ~AdminSite() {
-  }
+  ~AdminSite() {}
 
   // Handler which serves PSOL console.
   // Note: ConsoleHandler always succeeds.
@@ -65,8 +66,8 @@ class AdminSite {
                       Statistics* statistics);
 
   // Displays recent Info/Warning/Error messages.: public ServerContext
-  void MessageHistoryHandler(const RewriteOptions& options,
-                             AdminSource source, AsyncFetch* fetch);
+  void MessageHistoryHandler(const RewriteOptions& options, AdminSource source,
+                             AsyncFetch* fetch);
 
   // Deprecated handler for graphs in the PSOL console.
   void StatisticsGraphsHandler(
@@ -76,10 +77,9 @@ class AdminSite {
   // point for all the administrator pages including stats,
   // message-histogram, console, etc.
   void AdminPage(bool is_global, const GoogleUrl& stripped_gurl,
-                 const QueryParams& query_params,
-                 const RewriteOptions* options,
-                 SystemCachePath* cache_path,
-                 AsyncFetch* fetch, SystemCaches* system_caches,
+                 const QueryParams& query_params, const RewriteOptions* options,
+                 SystemCachePath* cache_path, AsyncFetch* fetch,
+                 SystemCaches* system_caches,
                  CacheInterface* filesystem_metadata_cache,
                  HTTPCache* http_cache, CacheInterface* metadata_cache,
                  PropertyCache* page_property_cache,
@@ -121,7 +121,8 @@ class AdminSite {
   // TODO(xqyin): Integrate this into console page.
   void GraphsHandler(const RewriteOptions& options, AdminSource source,
                      const QueryParams& query_params, AsyncFetch* fetch,
-                     Statistics* stats);;
+                     Statistics* stats);
+  ;
 
   // Print details for configuration.
   void PrintConfig(AdminSource source, AsyncFetch* fetch,
@@ -132,8 +133,7 @@ class AdminSite {
   void PrintCaches(bool is_global, AdminSource source,
                    const GoogleUrl& stripped_gurl,
                    const QueryParams& query_params,
-                   const RewriteOptions* options,
-                   SystemCachePath* cache_path,
+                   const RewriteOptions* options, SystemCachePath* cache_path,
                    AsyncFetch* fetch, SystemCaches* system_caches,
                    CacheInterface* filesystem_metadata_cache,
                    HTTPCache* http_cache, CacheInterface* metadata_cache,

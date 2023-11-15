@@ -1,31 +1,34 @@
 /*
- * Copyright 2016 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: yeputons@google.com (Egor Suvorov)
 
 #include "pagespeed/system/redis_cache.h"
 
 #include <sys/time.h>
+
 #include <algorithm>
 #include <cstddef>
+#include <memory>
 #include <utility>
 
 #include "base/logging.h"
 #include "third_party/redis-crc/redis_crc.h"
-#include "strings/stringpiece_utils.h"
+//#include "strings/stringpiece_utils.h"
 #include "pagespeed/kernel/base/shared_string.h"
 #include "pagespeed/kernel/base/string.h"
 
@@ -77,6 +80,9 @@ namespace net_instaweb {
 //
 // TODO(yeputons): consider removing limit on amount of redirections.
 static const int kMaxRedirections = 1;
+static const int kDefaultDatabaseIndex = 0;
+static const int kRedisDatabaseIndexNotSet = -1;
+static const int kRedisTTLNotSet = -1;
 
 const char kRedisClusterRedirections[] = "redis_cluster_redirections";
 const char kRedisClusterSlotsFetches[] = "redis_cluster_slots_fetches";
@@ -84,7 +90,7 @@ const char kRedisClusterSlotsFetches[] = "redis_cluster_slots_fetches";
 RedisCache::RedisCache(StringPiece host, int port, ThreadSystem* thread_system,
                        MessageHandler* message_handler, Timer* timer,
                        int64 reconnection_delay_ms, int64 timeout_us,
-                       Statistics* stats)
+                       Statistics* stats, int database_index, int ttl_sec)
     : main_host_(host.as_string()),
       main_port_(port),
       thread_system_(thread_system),
@@ -95,7 +101,9 @@ RedisCache::RedisCache(StringPiece host, int port, ThreadSystem* thread_system,
       thread_synchronizer_(new ThreadSynchronizer(thread_system)),
       connections_lock_(thread_system_->NewRWLock()),
       cluster_map_lock_(thread_system_->NewRWLock()),
-      main_connection_(nullptr) {
+      main_connection_(nullptr),
+      database_index_(database_index),
+      ttl_sec_(ttl_sec) {
   redirections_ = stats->GetVariable(kRedisClusterRedirections);
   cluster_slots_fetches_ = stats->GetVariable(kRedisClusterSlotsFetches);
 }
@@ -118,7 +126,7 @@ void RedisCache::StartUp(bool connect_now) {
     CHECK(connections_.empty());
     CHECK(!main_connection_);
     std::unique_ptr<Connection> conn(
-        new Connection(this, main_host_, main_port_));
+        new Connection(this, main_host_, main_port_, database_index_));
     main_connection_ = conn.get();
     connections_.emplace(StrCat(main_host_, ":", IntegerToString(main_port_)),
                          std::move(conn));
@@ -154,10 +162,9 @@ void RedisCache::ShutDown() {
 
 void RedisCache::Get(const GoogleString& key, Callback* callback) {
   KeyState keyState = CacheInterface::kNotFound;
-  RedisReply reply = RedisCommand(
-      LookupConnection(key),
-      "GET %b", {REDIS_REPLY_STRING, REDIS_REPLY_NIL},
-      key.data(), key.length());
+  RedisReply reply = RedisCommand(LookupConnection(key), "GET %b",
+                                  {REDIS_REPLY_STRING, REDIS_REPLY_NIL},
+                                  key.data(), key.length());
 
   if (reply) {
     if (reply->type == REDIS_REPLY_STRING) {
@@ -172,12 +179,19 @@ void RedisCache::Get(const GoogleString& key, Callback* callback) {
 }
 
 void RedisCache::Put(const GoogleString& key, const SharedString& value) {
-  RedisReply reply = RedisCommand(
-      LookupConnection(key),
-      "SET %b %b",
-      {REDIS_REPLY_STATUS},
-      key.data(), key.length(),
-      value.data(), static_cast<size_t>(value.size()));
+  RedisReply reply;
+
+  if (ttl_sec_ == kRedisTTLNotSet) {
+    reply = RedisCommand(LookupConnection(key), "SET %b %b",
+                         {REDIS_REPLY_STATUS}, key.data(), key.length(),
+                         value.data(), static_cast<size_t>(value.size()));
+  } else {
+    GoogleString s_ttl = IntegerToString(ttl_sec_);
+    reply = RedisCommand(LookupConnection(key), "SETEX %b %b %b",
+                         {REDIS_REPLY_STATUS}, key.data(), key.length(),
+                         s_ttl.data(), s_ttl.length(), value.data(),
+                         static_cast<size_t>(value.size()));
+  }
 
   if (!reply) {
     return;
@@ -197,8 +211,8 @@ void RedisCache::Put(const GoogleString& key, const SharedString& value) {
 void RedisCache::Delete(const GoogleString& key) {
   // Redis returns amount of keys deleted (probably, zero), no need in check
   // that amount; all other errors are handled by RedisCommand.
-  RedisCommand(LookupConnection(key),
-               "DEL %b", {REDIS_REPLY_INTEGER}, key.data(), key.length());
+  RedisCommand(LookupConnection(key), "DEL %b", {REDIS_REPLY_INTEGER},
+               key.data(), key.length());
 }
 
 void RedisCache::GetStatus(GoogleString* buffer) {
@@ -231,7 +245,6 @@ void RedisCache::GetStatus(GoogleString* buffer) {
 RedisCache::RedisReply RedisCache::RedisCommand(
     Connection* likely_connection, const char* format,
     std::initializer_list<int> valid_reply_types, ...) {
-
   if (likely_connection == nullptr) {
     return nullptr;
   }
@@ -248,11 +261,10 @@ RedisCache::RedisReply RedisCache::RedisCommand(
   Connection* last_redirecting_connection = nullptr;
   // This loop will break when no further redirections are needed.
   int redirections;
-  for (redirections = 0; redirections <= kMaxRedirections;
-       redirections++,
-           last_redirecting_connection = conn,
-           conn = GetOrCreateConnection(redirected_to),
-           redirections_->Add(1)) {
+  for (redirections = 0; redirections <= kMaxRedirections; redirections++,
+      last_redirecting_connection = conn,
+      conn = GetOrCreateConnection(redirected_to, kDefaultDatabaseIndex),
+      redirections_->Add(1)) {
     ScopedMutex lock(conn->GetOperationMutex());
 
     if (with_asking) {
@@ -346,7 +358,7 @@ ExternalServerSpec RedisCache::ParseRedirectionError(StringPiece error) {
 }
 
 RedisCache::Connection* RedisCache::GetOrCreateConnection(
-    ExternalServerSpec spec) {
+    ExternalServerSpec spec, const int database_index) {
   Connection* result;
   bool should_start_up = false;
   {
@@ -355,8 +367,10 @@ RedisCache::Connection* RedisCache::GetOrCreateConnection(
     ConnectionsMap::iterator it = connections_.find(name);
     if (it == connections_.end()) {
       LOG(INFO) << "Initiating connection Redis server at " << spec.ToString();
-      it = connections_.emplace(name, std::unique_ptr<Connection>(
-          new Connection(this, spec.host, spec.port))).first;
+      it = connections_
+               .emplace(name, std::make_unique<Connection>(
+                                  this, spec.host, spec.port, database_index))
+               .first;
       should_start_up = true;
     }
     result = it->second.get();
@@ -375,8 +389,8 @@ int RedisCache::HashSlot(StringPiece key) {
   // related keys together.
   stringpiece_ssize_type open_curly_index = key.find_first_of('{');
   if (open_curly_index != key.npos) {
-    stringpiece_ssize_type close_curly_index = key.find_first_of(
-        '}', open_curly_index);
+    stringpiece_ssize_type close_curly_index =
+        key.find_first_of('}', open_curly_index);
     if (close_curly_index != key.npos) {
       stringpiece_ssize_type segment_length =
           close_curly_index - open_curly_index - 1;
@@ -401,8 +415,8 @@ void RedisCache::FetchClusterSlotMapping(Connection* connection) {
   // server to talk to.  (If it changed, then someone else did a mapping update
   // in the mean time.)
   cluster_slots_fetches_->Add(1);
-  RedisReply reply = RedisCommand(
-      connection, "CLUSTER SLOTS", {REDIS_REPLY_ARRAY});
+  RedisReply reply =
+      RedisCommand(connection, "CLUSTER SLOTS", {REDIS_REPLY_ARRAY});
   if (reply == nullptr) {
     return;  // error
   }
@@ -430,8 +444,8 @@ void RedisCache::FetchClusterSlotMapping(Connection* connection) {
     if (start_slot_range->type != REDIS_REPLY_INTEGER ||
         end_slot_range->type != REDIS_REPLY_INTEGER ||
         master_spec->type != REDIS_REPLY_ARRAY) {
-      message_handler_->Message(
-          kError, "Wrong type in reply from CLUSTER SLOTS");
+      message_handler_->Message(kError,
+                                "Wrong type in reply from CLUSTER SLOTS");
       return;
     }
     if (master_spec->elements < 2) {
@@ -443,8 +457,8 @@ void RedisCache::FetchClusterSlotMapping(Connection* connection) {
     redisReply* master_port = master_spec->element[1];
     if (master_ip->type != REDIS_REPLY_STRING ||
         master_port->type != REDIS_REPLY_INTEGER) {
-      message_handler_->Message(
-          kError, "Wrong type in master spec from CLUSTER SLOTS");
+      message_handler_->Message(kError,
+                                "Wrong type in master spec from CLUSTER SLOTS");
       return;
     }
     if (start_slot_range->integer > end_slot_range->integer) {
@@ -453,10 +467,12 @@ void RedisCache::FetchClusterSlotMapping(Connection* connection) {
       return;
     }
     // Everything is there and is the right type.  Store it.
-    new_cluster_mappings.push_back(ClusterMapping(
+    // Using database 0 for cluster
+    new_cluster_mappings.emplace_back(
         start_slot_range->integer, end_slot_range->integer,
-        GetOrCreateConnection(ExternalServerSpec(
-            master_ip->str, master_port->integer))));
+        GetOrCreateConnection(
+            ExternalServerSpec(master_ip->str, master_port->integer),
+            kDefaultDatabaseIndex));
   }
 
   // Sort new_cluster_mappings based on start_slot_range_.
@@ -513,7 +529,7 @@ RedisCache::Connection* RedisCache::LookupConnection(StringPiece key) {
 }
 
 RedisCache::Connection::Connection(RedisCache* redis_cache, StringPiece host,
-                                   int port)
+                                   int port, int database_index)
     : redis_cache_(redis_cache),
       host_(host.as_string()),
       port_(port),
@@ -521,7 +537,8 @@ RedisCache::Connection::Connection(RedisCache* redis_cache, StringPiece host,
       state_mutex_(redis_cache_->thread_system_->NewMutex()),
       redis_(nullptr),
       state_(kShutDown),
-      next_reconnect_at_ms_(redis_cache_->timer_->NowMs()) {}
+      next_reconnect_at_ms_(redis_cache_->timer_->NowMs()),
+      database_index_(database_index) {}
 
 void RedisCache::Connection::StartUp(bool connect_now) {
   CHECK_NE("", host_);
@@ -533,7 +550,7 @@ void RedisCache::Connection::StartUp(bool connect_now) {
     state_ = kDisconnected;
   }
   if (connect_now) {
-    EnsureConnection();
+    EnsureConnectionAndDatabaseSelection();
   }
 }
 
@@ -557,6 +574,10 @@ void RedisCache::Connection::ShutDown() {
   // called while there are some unfinished requests, they should return.
   redis_.reset();
   state_ = kShutDown;
+}
+
+bool RedisCache::Connection::EnsureConnectionAndDatabaseSelection() {
+  return EnsureConnection() && EnsureDatabaseSelection();
 }
 
 bool RedisCache::Connection::EnsureConnection() {
@@ -597,6 +618,22 @@ bool RedisCache::Connection::EnsureConnection() {
     DCHECK_EQ(state_, kShutDown);
   }
   return state_ == kConnected;
+}
+
+bool RedisCache::Connection::EnsureDatabaseSelection() {
+  // dont select database if database index property not specified in config
+  if (database_index_ != kRedisDatabaseIndexNotSet) {
+    RedisReply reply = RedisCommand(
+        StrCat("SELECT ", IntegerToString(database_index_)).c_str(),
+        REDIS_REPLY_STRING);
+    if (reply == nullptr) {
+      ScopedMutex lock(state_mutex_.get());
+      state_ = kDisconnected;
+      redis_.reset();
+      return false;
+    }
+  }
+  return true;
 }
 
 RedisCache::RedisContext RedisCache::Connection::TryConnect() {
@@ -655,7 +692,7 @@ void RedisCache::Connection::UpdateState() {
 
 RedisCache::RedisReply RedisCache::Connection::RedisCommand(const char* format,
                                                             va_list args) {
-  if (!EnsureConnection()) {
+  if (!EnsureConnectionAndDatabaseSelection()) {
     return nullptr;
   }
 
@@ -666,8 +703,8 @@ RedisCache::RedisReply RedisCache::Connection::RedisCommand(const char* format,
   return RedisReply(static_cast<redisReply*>(result));
 }
 
-RedisCache::RedisReply RedisCache::Connection::RedisCommand(
-    const char* format, ...) {
+RedisCache::RedisReply RedisCache::Connection::RedisCommand(const char* format,
+                                                            ...) {
   va_list args;
   va_start(args, format);
   RedisCache::RedisReply reply = RedisCommand(format, args);
@@ -676,20 +713,21 @@ RedisCache::RedisReply RedisCache::Connection::RedisCommand(
 }
 
 void RedisCache::Connection::LogRedisContextError(redisContext* context,
-                                      const char* cause) {
+                                                  const char* cause) {
   if (context == nullptr) {
     // Can happen if EnsureConnection() failed to allocate context
     redis_cache_->message_handler_->Message(
         kError, "%s: unknown error (redis context is not available)", cause);
   } else {
     redis_cache_->message_handler_->Message(kError, "%s: err flags is %d, %s",
-                              cause, context->err, context->errstr);
+                                            cause, context->err,
+                                            context->errstr);
   }
 }
 
-bool RedisCache::Connection::ValidateRedisReply(const RedisReply& reply,
-                                    std::initializer_list<int> valid_types,
-                                    const char* command_executed) {
+bool RedisCache::Connection::ValidateRedisReply(
+    const RedisReply& reply, std::initializer_list<int> valid_types,
+    const char* command_executed) {
   {
     ScopedMutex lock(state_mutex_.get());
     if (state_ != kConnected) {

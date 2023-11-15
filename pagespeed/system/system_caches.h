@@ -1,19 +1,21 @@
-// Copyright 2013 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
-//         lsong@google.com (Libo Song)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_SYSTEM_SYSTEM_CACHES_H_
 #define PAGESPEED_SYSTEM_SYSTEM_CACHES_H_
@@ -23,8 +25,8 @@
 
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/cache_interface.h"
-#include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/md5_hasher.h"
+#include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/scoped_ptr.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
@@ -80,8 +82,7 @@ class SystemCaches {
 
   // thread_limit is an estimate of number of threads that may access the
   // cache at the same time. Does not take ownership of shm_runtime.
-  SystemCaches(RewriteDriverFactory* factory,
-               AbstractSharedMem* shm_runtime,
+  SystemCaches(RewriteDriverFactory* factory, AbstractSharedMem* shm_runtime,
                int thread_limit);
 
   // Note that you must call ShutDown() before this is deleted.
@@ -112,8 +113,8 @@ class SystemCaches {
   //
   // Returns whether successful or not, and if not, *error_msg will contain
   // an error message.  Meant to be called from config parsing.
-  bool CreateShmMetadataCache(
-      StringPiece name, int64 size_kb, GoogleString* error_msg);
+  bool CreateShmMetadataCache(StringPiece name, int64 size_kb,
+                              GoogleString* error_msg);
 
   // Returns, perhaps creating it, an appropriate named manager for this config
   // (potentially sharing with others as appropriate).
@@ -207,7 +208,7 @@ class SystemCaches {
   void SetupPcacheCohorts(ServerContext* server_context,
                           bool enable_property_cache);
 
-  scoped_ptr<SlowWorker> slow_worker_;
+  std::unique_ptr<SlowWorker> slow_worker_;
 
   RewriteDriverFactory* factory_;
   AbstractSharedMem* shared_mem_runtime_;
@@ -233,8 +234,8 @@ class SystemCaches {
   // both memcached and Redis are enabled and one of them goes down, it blocks
   // requests to both servers. Actually, we have that problem already if there
   // different vhosts use different external cache servers.
-  scoped_ptr<QueuedWorkerPool> memcached_pool_;
-  scoped_ptr<QueuedWorkerPool> redis_pool_;
+  std::unique_ptr<QueuedWorkerPool> memcached_pool_;
+  std::unique_ptr<QueuedWorkerPool> redis_pool_;
 
   // Explicit lists of AprMemCache/RedisCache instances are stored individually,
   // as they require extra treatment during startup and shutdown.

@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: nforman@google.com (Naomi Forman)
 //
 // Implements the convert_meta_tags filter, which creates a
 // response header for http-equiv meta tags.
@@ -40,8 +42,7 @@ const char kConvertedMetaTags[] = "converted_meta_tags";
 namespace net_instaweb {
 
 MetaTagFilter::MetaTagFilter(RewriteDriver* rewrite_driver)
-    : CommonFilter(rewrite_driver),
-      response_headers_(NULL) {
+    : CommonFilter(rewrite_driver), response_headers_(nullptr) {
   Statistics* stats = driver()->statistics();
   converted_meta_tag_count_ = stats->GetVariable(kConvertedMetaTags);
 }
@@ -58,13 +59,12 @@ void MetaTagFilter::StartDocumentImpl() {
   response_headers_ = driver()->mutable_response_headers();
 }
 
-
 void MetaTagFilter::EndElementImpl(HtmlElement* element) {
   // If response_headers_ are null, they got reset due to a flush, so don't
   // try to convert any tags into response_headers_ (which were already
   // finalized). Also don't add meta tags to response_headers_ if they're
   // inside a noscript tag.
-  if (response_headers_ == NULL || noscript_element() != NULL ||
+  if (response_headers_ == nullptr || noscript_element() != nullptr ||
       element->keyword() != HtmlName::kMeta) {
     return;
   }
@@ -74,15 +74,14 @@ void MetaTagFilter::EndElementImpl(HtmlElement* element) {
 }
 
 bool MetaTagFilter::ExtractAndUpdateMetaTagDetails(
-    HtmlElement* element,
-    ResponseHeaders* response_headers) {
-  if (response_headers == NULL) {
+    HtmlElement* element, ResponseHeaders* response_headers) {
+  if (response_headers == nullptr) {
     return false;
   }
   GoogleString content, mime_type, charset;
 
-  if (ExtractMetaTagDetails(*element, response_headers,
-                            &content, &mime_type, &charset)) {
+  if (ExtractMetaTagDetails(*element, response_headers, &content, &mime_type,
+                            &charset)) {
     if (!content.empty()) {
       // Yes content => it has http-equiv and content attributes,
       // and a mime_type and/or a charset, but we need a mime_type.
@@ -92,7 +91,7 @@ bool MetaTagFilter::ExtractAndUpdateMetaTagDetails(
         // XHTML is forced to UTF-8 anyway and we really don't want to propagate
         // an XHTML type in cases where Apache is unsure just to propagate
         // a charset that's not supposed to take any effect.
-        if (type != NULL && type->type() == ContentType::kHtml) {
+        if (type != nullptr && type->type() == ContentType::kHtml) {
           if (response_headers->MergeContentType(content)) {
             return true;
           }
@@ -109,8 +108,6 @@ bool MetaTagFilter::ExtractAndUpdateMetaTagDetails(
   return false;
 }
 
-void MetaTagFilter::Flush() {
-  response_headers_ = NULL;
-}
+void MetaTagFilter::Flush() { response_headers_ = nullptr; }
 
 }  // namespace net_instaweb

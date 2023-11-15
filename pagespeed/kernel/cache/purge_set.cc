@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/cache/purge_set.h"
 
@@ -37,8 +38,7 @@ PurgeSet::PurgeSet(size_t max_size)
     : global_invalidation_timestamp_ms_(kInitialTimestampMs),
       last_invalidation_timestamp_ms_(0),
       helper_(this),
-      lru_(new Lru(max_size, &helper_)) {
-}
+      lru_(new Lru(max_size, &helper_)) {}
 
 PurgeSet::PurgeSet(const PurgeSet& src)
     : global_invalidation_timestamp_ms_(kInitialTimestampMs),
@@ -48,8 +48,7 @@ PurgeSet::PurgeSet(const PurgeSet& src)
   Merge(src);
 }
 
-PurgeSet::~PurgeSet() {
-}
+PurgeSet::~PurgeSet() {}
 
 PurgeSet& PurgeSet::operator=(const PurgeSet& src) {
   if (&src != this) {
@@ -74,8 +73,7 @@ namespace {
 // merged order.
 class MergeContext {
  public:
-  MergeContext(int64 global_invalidation_timestamp_ms,
-               int64 this_num_elements,
+  MergeContext(int64 global_invalidation_timestamp_ms, int64 this_num_elements,
                int64 src_num_elements)
       : global_invalidation_timestamp_ms_(global_invalidation_timestamp_ms) {
     int total_size = this_num_elements + src_num_elements;
@@ -143,11 +141,9 @@ void PurgeSet::Merge(const PurgeSet& src) {
   // in sync, so quibbling about an extra O(n) walk thorugh the in-memory
   // data does not seem worthwhile.
   global_invalidation_timestamp_ms_ = std::max(
-      global_invalidation_timestamp_ms_,
-      src.global_invalidation_timestamp_ms_);
+      global_invalidation_timestamp_ms_, src.global_invalidation_timestamp_ms_);
   MergeContext merge_context(global_invalidation_timestamp_ms_,
-                             lru_->num_elements(),
-                             src.lru_->num_elements());
+                             lru_->num_elements(), src.lru_->num_elements());
   Lru::Iterator src_iter = src.lru_->Begin(), src_end = src.lru_->End();
   Lru::Iterator this_iter = lru_->Begin(), this_end = lru_->End();
   while ((src_iter != src_end) && (this_iter != this_end)) {
@@ -229,7 +225,8 @@ bool PurgeSet::IsValid(const GoogleString& key, int64 timestamp_ms) const {
     return false;
   }
   int64* purge_timestamp_ms = lru_->GetNoFreshen(key);
-  return ((purge_timestamp_ms == NULL) || (timestamp_ms > *purge_timestamp_ms));
+  return ((purge_timestamp_ms == nullptr) ||
+          (timestamp_ms > *purge_timestamp_ms));
 }
 
 void PurgeSet::Swap(PurgeSet* that) {

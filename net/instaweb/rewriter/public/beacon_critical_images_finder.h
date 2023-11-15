@@ -1,19 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-// Author: jud@google.com (Jud Porter)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_BEACON_CRITICAL_IMAGES_FINDER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_BEACON_CRITICAL_IMAGES_FINDER_H_
@@ -37,47 +39,42 @@ class Timer;
 class BeaconCriticalImagesFinder : public CriticalImagesFinder {
  public:
   // All constructor args are owned by the caller.
-  BeaconCriticalImagesFinder(
-      const PropertyCache::Cohort* cohort,
-      NonceGenerator* nonce_generator,
-      Statistics* stats);
-  virtual ~BeaconCriticalImagesFinder();
+  BeaconCriticalImagesFinder(const PropertyCache::Cohort* cohort,
+                             NonceGenerator* nonce_generator,
+                             Statistics* stats);
+  ~BeaconCriticalImagesFinder() override;
 
-  virtual Availability Available(RewriteDriver* driver);
+  Availability Available(RewriteDriver* driver) override;
 
-  virtual int PercentSeenForCritical() const {
+  int PercentSeenForCritical() const override {
     return kBeaconPercentSeenForCritical;
   }
 
-  virtual int SupportInterval() const {
-    return kBeaconImageSupportInterval;
-  }
+  int SupportInterval() const override { return kBeaconImageSupportInterval; }
 
-  virtual void ComputeCriticalImages(RewriteDriver* driver) {}
+  void ComputeCriticalImages(RewriteDriver* driver) override {}
 
   // Update the critical image entry in the property cache. This is meant to be
   // called in the beacon handler, where there is no RewriteDriver available.
   static bool UpdateCriticalImagesCacheEntry(
       const StringSet* html_critical_images_set,
       const StringSet* css_critical_images_set,
-      const RenderedImages* rendered_images_set,
-      const StringPiece& nonce,
-      const PropertyCache::Cohort* cohort,
-      AbstractPropertyPage* page,
+      const RenderedImages* rendered_images_set, const StringPiece& nonce,
+      const PropertyCache::Cohort* cohort, AbstractPropertyPage* page,
       Timer* timer);
 
-  virtual bool ShouldBeacon(RewriteDriver* driver);
+  bool ShouldBeacon(RewriteDriver* driver) override;
   // Check beacon interval and nonce state, and return appropriate
   // BeaconMetadata; result.status indicates whether beaconing should occur, and
   // result.nonce contains the nonce (if required).
-  virtual BeaconMetadata PrepareForBeaconInsertion(RewriteDriver* driver);
+  BeaconMetadata PrepareForBeaconInsertion(RewriteDriver* driver) override;
 
-  virtual void UpdateCandidateImagesForBeaconing(const StringSet& images,
-                                                 RewriteDriver* driver,
-                                                 bool beaconing);
+  void UpdateCandidateImagesForBeaconing(const StringSet& images,
+                                         RewriteDriver* driver,
+                                         bool beaconing) override;
 
  private:
-  virtual GoogleString GetKeyForUrl(StringPiece url);
+  GoogleString GetKeyForUrl(StringPiece url) override;
 
   // 80% is a guess at a reasonable value for this param.
   static const int kBeaconPercentSeenForCritical = 80;

@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jkarlin@google.com (Josh Karlin)
 
 #include "net/instaweb/rewriter/public/pedantic_filter.h"
 
@@ -27,8 +28,7 @@
 namespace net_instaweb {
 
 PedanticFilter::PedanticFilter(HtmlParse* html_parse)
-    : html_parse_(html_parse), script_scanner_(html_parse) {
-}
+    : html_parse_(html_parse), script_scanner_(html_parse) {}
 
 PedanticFilter::~PedanticFilter() {}
 
@@ -41,7 +41,7 @@ void PedanticFilter::StartElement(HtmlElement* element) {
   // http://www.w3.org/TR/html5/the-style-element.html#attr-style-type
   if (!doctype.IsVersion5() && element->keyword() == HtmlName::kStyle) {
     HtmlElement::Attribute* type_attr = element->FindAttribute(HtmlName::kType);
-    if (type_attr == NULL) {
+    if (type_attr == nullptr) {
       // We have a style tag without a type attribute, add one.
       html_parse_->AddAttribute(element, HtmlName::kType, "text/css");
     }
@@ -54,16 +54,15 @@ void PedanticFilter::StartElement(HtmlElement* element) {
   if (!doctype.IsVersion5() && element->keyword() == HtmlName::kScript) {
     HtmlElement::Attribute* type_attr = element->FindAttribute(HtmlName::kType);
 
-    if (type_attr == NULL) {
+    if (type_attr == nullptr) {
       // No type and no language attributes, let's double check with
       // ScriptTagScanner that it thinks we're looking at javascript.
 
-      HtmlElement::Attribute* src = NULL;
+      HtmlElement::Attribute* src = nullptr;
       ScriptTagScanner::ScriptClassification classification =
           script_scanner_.ParseScriptElement(element, &src);
       if (classification == ScriptTagScanner::kJavaScript) {
-        html_parse_->AddAttribute(element, HtmlName::kType,
-                                  "text/javascript");
+        html_parse_->AddAttribute(element, HtmlName::kType, "text/javascript");
       }
     }
   }

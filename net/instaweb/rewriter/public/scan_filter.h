@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_SCAN_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_SCAN_FILTER_H_
@@ -40,19 +41,19 @@ class RewriteDriver;
 class ScanFilter : public EmptyHtmlFilter {
  public:
   explicit ScanFilter(RewriteDriver* driver);
-  virtual ~ScanFilter();
+  ~ScanFilter() override;
 
-  virtual void StartDocument();
-  virtual void StartElement(HtmlElement* element);
-  virtual void EndElement(HtmlElement* element);
-  virtual void Cdata(HtmlCdataNode* cdata);
-  virtual void Comment(HtmlCommentNode* comment);
-  virtual void IEDirective(HtmlIEDirectiveNode* directive);
-  virtual void Characters(HtmlCharactersNode* characters);
-  virtual void Directive(HtmlDirectiveNode* directive);
-  virtual void Flush();
+  void StartDocument() override;
+  void StartElement(HtmlElement* element) override;
+  void EndElement(HtmlElement* element) override;
+  void Cdata(HtmlCdataNode* cdata) override;
+  void Comment(HtmlCommentNode* comment) override;
+  void IEDirective(HtmlIEDirectiveNode* directive) override;
+  void Characters(HtmlCharactersNode* characters) override;
+  void Directive(HtmlDirectiveNode* directive) override;
+  void Flush() override;
 
-  virtual const char* Name() const { return "Scan"; }
+  const char* Name() const override { return "Scan"; }
 
  private:
   RewriteDriver* driver_;

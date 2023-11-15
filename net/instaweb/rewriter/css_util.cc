@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: nforman@google.com (Naomi Forman)
 
 #include "net/instaweb/rewriter/public/css_util.h"
 
@@ -25,12 +26,12 @@
 #include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/html/html_element.h"
 #include "pagespeed/kernel/html/html_name.h"
-#include "util/utf8/public/unicodetext.h"
-#include "webutil/css/media.h"
-#include "webutil/css/parser.h"
-#include "webutil/css/property.h"
-#include "webutil/css/selector.h"
-#include "webutil/css/value.h"
+#include "third_party/css_parser/src/util/utf8/public/unicodetext.h"
+#include "third_party/css_parser/src/webutil/css/media.h"
+#include "third_party/css_parser/src/webutil/css/parser.h"
+#include "third_party/css_parser/src/webutil/css/property.h"
+#include "third_party/css_parser/src/webutil/css/selector.h"
+#include "third_party/css_parser/src/webutil/css/value.h"
 
 namespace net_instaweb {
 
@@ -42,16 +43,16 @@ int GetValueDimension(const Css::Values* values) {
   for (Css::Values::const_iterator value_iter = values->begin();
        value_iter != values->end(); ++value_iter) {
     Css::Value* value = *value_iter;
-    if ((value->GetLexicalUnitType() == Css::Value::NUMBER)
-        && (value->GetDimension() == Css::Value::PX)) {
+    if ((value->GetLexicalUnitType() == Css::Value::NUMBER) &&
+        (value->GetDimension() == Css::Value::PX)) {
       return value->GetIntegerValue();
     }
   }
   return kNoValue;
 }
 
-DimensionState GetDimensions(Css::Declarations* decls,
-                             int* width, int* height) {
+DimensionState GetDimensions(Css::Declarations* decls, int* width,
+                             int* height) {
   bool has_width = false;
   bool has_height = false;
   *width = kNoValue;
@@ -91,7 +92,7 @@ StyleExtractor::StyleExtractor(HtmlElement* element)
     : decls_(GetDeclsFromElement(element)),
       width_px_(kNoValue),
       height_px_(kNoValue) {
-  if (decls_.get() != NULL) {
+  if (decls_.get() != nullptr) {
     state_ = GetDimensions(decls_.get(), &width_px_, &height_px_);
   } else {
     state_ = kNoDimensions;
@@ -104,11 +105,11 @@ StyleExtractor::~StyleExtractor() {}
 // there is no style, return NULL.
 Css::Declarations* StyleExtractor::GetDeclsFromElement(HtmlElement* element) {
   HtmlElement::Attribute* style = element->FindAttribute(HtmlName::kStyle);
-  if ((style != NULL) && (style->DecodedValueOrNull() != NULL)) {
+  if ((style != nullptr) && (style->DecodedValueOrNull() != nullptr)) {
     Css::Parser parser(style->DecodedValueOrNull());
     return parser.ParseDeclarations();
   }
-  return NULL;
+  return nullptr;
 }
 
 void VectorizeMediaAttribute(const StringPiece& input_media,
@@ -207,9 +208,7 @@ bool StartsWithWord(const StringPiece& word, StringPiece* data) {
     return false;
   }
   local.remove_prefix(word.size());
-  if (TrimLeadingWhitespace(&local) ||
-      local.empty() ||
-      local[0] == '(') {
+  if (TrimLeadingWhitespace(&local) || local.empty() || local[0] == '(') {
     *data = local;
     return true;
   }
@@ -241,10 +240,8 @@ bool CanMediaAffectScreen(const StringPiece& media) {
     // (but causes CSS2 to not use this rule).
     StartsWithWord("only", &current);
     bool initial_not = StartsWithWord("not", &current);
-    if (StartsWithWord("screen", &current) ||
-        StartsWithWord("all", &current) ||
-        current.empty() ||
-        current[0] == '(') {
+    if (StartsWithWord("screen", &current) || StartsWithWord("all", &current) ||
+        current.empty() || current[0] == '(') {
       // Affects screen, unless there was an initial not.
       if (!initial_not) {
         return true;
@@ -265,7 +262,7 @@ GoogleString JsDetectableSelector(const Css::Selector& selector) {
   Css::Selector trimmed;
   for (int i = 0, n = selector.size(); i < n; ++i) {
     Css::SimpleSelectors* simple_selectors = selector[i];
-    scoped_ptr<Css::SimpleSelectors> trimmed_selectors(
+    std::unique_ptr<Css::SimpleSelectors> trimmed_selectors(
         new Css::SimpleSelectors(simple_selectors->combinator()));
     for (int j = 0, m = simple_selectors->size(); j < m; ++j) {
       Css::SimpleSelector* simple_selector = (*simple_selectors)[j];

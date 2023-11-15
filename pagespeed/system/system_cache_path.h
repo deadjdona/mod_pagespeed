@@ -1,18 +1,21 @@
-// Copyright 2011 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_SYSTEM_SYSTEM_CACHE_PATH_H_
 #define PAGESPEED_SYSTEM_SYSTEM_CACHE_PATH_H_
@@ -52,8 +55,7 @@ class SystemCachePath {
   static const char kFileCache[];
   static const char kLruCache[];
 
-  SystemCachePath(const StringPiece& path,
-                  const SystemRewriteOptions* config,
+  SystemCachePath(const StringPiece& path, const SystemRewriteOptions* config,
                   RewriteDriverFactory* factory,
                   AbstractSharedMem* shm_runtime);
   ~SystemCachePath();
@@ -119,11 +121,9 @@ class SystemCachePath {
   //
   // 'name' is used in a warning message printed whenever resolution was
   // required.
-  void MergeEntries(int64 config_value, bool config_was_set,
-                    bool take_larger,
-                    const char* name,
-                    int64* policy_value, bool* has_explicit_policy);
-
+  void MergeEntries(int64 config_value, bool config_was_set, bool take_larger,
+                    const char* name, int64* policy_value,
+                    bool* has_explicit_policy);
 
   // Transmits cache-purge-set updates to all live server contexts.
   void UpdateCachePurgeSet(const CopyOnWrite<PurgeSet>& purge_set);
@@ -132,8 +132,8 @@ class SystemCachePath {
 
   RewriteDriverFactory* factory_;
   AbstractSharedMem* shm_runtime_;
-  scoped_ptr<SharedMemLockManager> shared_mem_lock_manager_;
-  scoped_ptr<FileSystemLockManager> file_system_lock_manager_;
+  std::unique_ptr<SharedMemLockManager> shared_mem_lock_manager_;
+  std::unique_ptr<FileSystemLockManager> file_system_lock_manager_;
   NamedLockManager* lock_manager_;
   FileCache* file_cache_backend_;  // owned by file_cache_
   CacheInterface* lru_cache_;
@@ -145,9 +145,9 @@ class SystemCachePath {
   bool clean_size_explicitly_set_;
   bool clean_inode_limit_explicitly_set_;
 
-  scoped_ptr<PurgeContext> purge_context_;
+  std::unique_ptr<PurgeContext> purge_context_;
 
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   ServerContextSet server_context_set_ GUARDED_BY(mutex_);
 };
 

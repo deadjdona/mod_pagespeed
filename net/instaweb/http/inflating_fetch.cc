@@ -1,22 +1,25 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
-
 #include "net/instaweb/http/public/inflating_fetch.h"
+
+#include <memory>
 
 #include "base/logging.h"
 #include "pagespeed/kernel/base/message_handler.h"
@@ -29,14 +32,11 @@
 
 namespace net_instaweb {
 
-InflatingFetch::InflatingFetch(AsyncFetch* fetch)
-    : SharedAsyncFetch(fetch) {
+InflatingFetch::InflatingFetch(AsyncFetch* fetch) : SharedAsyncFetch(fetch) {
   Reset();
 }
 
-InflatingFetch::~InflatingFetch() {
-  Reset();
-}
+InflatingFetch::~InflatingFetch() { Reset(); }
 
 bool InflatingFetch::IsCompressionAllowedInRequest() {
   if (!request_checked_for_accept_encoding_) {
@@ -44,7 +44,7 @@ bool InflatingFetch::IsCompressionAllowedInRequest() {
     ConstStringStarVector v;
     if (request_headers()->Lookup(HttpAttributes::kAcceptEncoding, &v)) {
       for (int i = 0, n = v.size(); i < n; ++i) {
-        if (v[i] != NULL) {
+        if (v[i] != nullptr) {
           StringPiece value = *v[i];
           if (StringCaseEqual(value, HttpAttributes::kGzip) ||
               StringCaseEqual(value, HttpAttributes::kDeflate)) {
@@ -73,7 +73,7 @@ bool InflatingFetch::HandleWrite(const StringPiece& sp,
   if (inflate_failure_) {
     return false;
   }
-  if (inflater_.get() == NULL) {
+  if (inflater_.get() == nullptr) {
     return SharedAsyncFetch::HandleWrite(sp, handler);
   }
 
@@ -90,8 +90,8 @@ bool InflatingFetch::HandleWrite(const StringPiece& sp,
           inflate_failure_ = true;
           break;
         } else {
-          status = SharedAsyncFetch::HandleWrite(
-              StringPiece(buf, size), handler);
+          status =
+              SharedAsyncFetch::HandleWrite(StringPiece(buf, size), handler);
         }
       }
     } else {
@@ -157,7 +157,7 @@ bool InflatingFetch::GzipValue(int compression_level,
     headers->Add(HttpAttributes::kContentEncoding, HttpAttributes::kGzip);
     headers->SetContentLength(deflated.length());
     compressed_value->SetHeaders(headers);
-    compressed_value->Write(deflated, NULL);
+    compressed_value->Write(deflated, nullptr);
     return true;
   }
   return false;
@@ -177,7 +177,7 @@ void InflatingFetch::HandleHeadersComplete() {
     // Look for an encoding to strip.  We only look at the *last* encoding.
     // See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
     for (int i = v.size() - 1; i >= 0; --i) {
-      if (v[i] != NULL) {
+      if (v[i] != nullptr) {
         const StringPiece& value = *v[i];
         if (!value.empty()) {
           if (StringCaseEqual(value, HttpAttributes::kGzip)) {
@@ -201,10 +201,10 @@ void InflatingFetch::InitInflater(GzipInflater::InflateType type,
 
   // TODO(jmarantz): Consider integrating with a free-store of Inflater
   // objects to avoid re-initializing these on every request.
-  inflater_.reset(new GzipInflater(type));
+  inflater_ = std::make_unique<GzipInflater>(type);
   if (!inflater_->Init()) {
     inflate_failure_ = true;
-    inflater_.reset(NULL);
+    inflater_.reset(nullptr);
   }
 }
 
@@ -214,9 +214,9 @@ void InflatingFetch::HandleDone(bool success) {
 }
 
 void InflatingFetch::Reset() {
-  if (inflater_.get() != NULL) {
+  if (inflater_.get() != nullptr) {
     inflater_->ShutDown();
-    inflater_.reset(NULL);
+    inflater_.reset(nullptr);
   }
   request_checked_for_accept_encoding_ = false;
   compression_desired_ = false;

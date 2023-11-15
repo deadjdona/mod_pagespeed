@@ -1,31 +1,32 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: matterbury@google.com (Matt Atterbury)
 
 #include "pagespeed/kernel/base/hostname_util.h"
 
-#include <limits.h>
+#include <climits>
 // The following break portability.
 
 // Windows doesn't use <unistd.h> nor does it define HOST_NAME_MAX.
 #if defined(WIN32)
 #include <windows.h>
 #include <winsock2.h>
-#define HOST_NAME_MAX (MAX_COMPUTERNAME_LENGTH+1)
+#define HOST_NAME_MAX (MAX_COMPUTERNAME_LENGTH + 1)
 #else
 // Some Linux environments require this, although not all, but it's benign.
 #if defined(unix)
@@ -61,10 +62,8 @@ GoogleString GetHostname() {
 }
 
 bool IsLocalhost(StringPiece host_to_test, StringPiece hostname) {
-  return (host_to_test == "localhost" ||
-          host_to_test == "127.0.0.1" ||
-          host_to_test == "::1" ||
-          host_to_test == hostname);
+  return (host_to_test == "localhost" || host_to_test == "127.0.0.1" ||
+          host_to_test == "::1" || host_to_test == hostname);
 }
 
 }  // namespace net_instaweb

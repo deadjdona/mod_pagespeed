@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: lsong@google.com (Libo Song)
 
 #ifndef PAGESPEED_KERNEL_CACHE_FILE_CACHE_H_
 #define PAGESPEED_KERNEL_CACHE_FILE_CACHE_H_
@@ -44,7 +45,9 @@ class FileCache : public CacheInterface {
   struct CachePolicy {
     CachePolicy(Timer* timer, Hasher* hasher, int64 clean_interval_ms,
                 int64 target_size_bytes, int64 target_inode_count)
-        : timer(timer), hasher(hasher), clean_interval_ms(clean_interval_ms),
+        : timer(timer),
+          hasher(hasher),
+          clean_interval_ms(clean_interval_ms),
           target_size_bytes(target_size_bytes),
           target_inode_count(target_inode_count) {}
     const Timer* timer;
@@ -53,6 +56,7 @@ class FileCache : public CacheInterface {
     int64 target_size_bytes;
     int64 target_inode_count;
     bool cleaning_enabled() { return clean_interval_ms != kDisableCleaning; }
+
    private:
     DISALLOW_COPY_AND_ASSIGN(CachePolicy);
   };
@@ -60,22 +64,22 @@ class FileCache : public CacheInterface {
   FileCache(const GoogleString& path, FileSystem* file_system,
             ThreadSystem* thread_system, SlowWorker* worker,
             CachePolicy* policy, Statistics* stats, MessageHandler* handler);
-  virtual ~FileCache();
+  ~FileCache() override;
 
   static void InitStats(Statistics* statistics);
 
-  virtual void Get(const GoogleString& key, Callback* callback);
-  virtual void Put(const GoogleString& key, const SharedString& value);
-  virtual void Delete(const GoogleString& key);
+  void Get(const GoogleString& key, Callback* callback) override;
+  void Put(const GoogleString& key, const SharedString& value) override;
+  void Delete(const GoogleString& key) override;
   void set_worker(SlowWorker* worker) { worker_ = worker; }
   SlowWorker* worker() { return worker_; }
 
   static GoogleString FormatName() { return "FileCache"; }
-  virtual GoogleString Name() const { return FormatName(); }
+  GoogleString Name() const override { return FormatName(); }
 
-  virtual bool IsBlocking() const { return true; }
-  virtual bool IsHealthy() const { return true; }
-  virtual void ShutDown() {}  // TODO(jmarantz): implement.
+  bool IsBlocking() const override { return true; }
+  bool IsHealthy() const override { return true; }
+  void ShutDown() override {}  // TODO(jmarantz): implement.
 
   const CachePolicy* cache_policy() const { return cache_policy_.get(); }
   CachePolicy* mutable_cache_policy() { return cache_policy_.get(); }
@@ -132,8 +136,8 @@ class FileCache : public CacheInterface {
   FileSystem* file_system_;
   SlowWorker* worker_;
   MessageHandler* message_handler_;
-  const scoped_ptr<CachePolicy> cache_policy_;
-  scoped_ptr<AbstractMutex> mutex_;
+  const std::unique_ptr<CachePolicy> cache_policy_;
+  std::unique_ptr<AbstractMutex> mutex_;
   int64 next_clean_ms_ GUARDED_BY(mutex_);
   int path_length_limit_;  // Maximum total length of path file_system_ supports
   // The full paths to our cleanup timestamp and lock files.

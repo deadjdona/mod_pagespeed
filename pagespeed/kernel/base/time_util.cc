@@ -1,24 +1,27 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
-
 #include "pagespeed/kernel/base/time_util.h"
+
 #include <ctime>
-#include "prtime.h"  // NOLINT
+
+#include "absl/time/time.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
@@ -49,19 +52,16 @@ bool TimeToString(int64 time, GoogleString* time_string,
 #else
   struct tm* time_info = gmtime_r(&time_sec, &time_buf);
 #endif  // WIN32
-  if ((time_info == NULL) ||
-      (time_buf.tm_wday < 0) ||
-      (time_buf.tm_wday > 6) ||
-      (time_buf.tm_mon < 0) ||
+  if ((time_info == nullptr) || (time_buf.tm_wday < 0) ||
+      (time_buf.tm_wday > 6) || (time_buf.tm_mon < 0) ||
       (time_buf.tm_mon > 11)) {
     return false;
   }
 
-  static const char* kWeekDay[] = {
-    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-  static const char* kMonth[] = {
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
-    "Dec"};
+  static const char* kWeekDay[] = {"Sun", "Mon", "Tue", "Wed",
+                                   "Thu", "Fri", "Sat"};
+  static const char* kMonth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
   // RFC 822 says to format like this:
   //                Thu Nov 18 02:15:22 2010 GMT
@@ -72,14 +72,10 @@ bool TimeToString(int64 time, GoogleString* time_string,
 
   // If us is true, time is down to microseconds, the format is like this:
   //    Wed, 24 Nov 2010 21:14:12.12345 GMT
-  *time_string = StringPrintf("%s, %02d %s %4d %02d:%02d:%02d",
-                              kWeekDay[time_buf.tm_wday],
-                              time_buf.tm_mday,
-                              kMonth[time_buf.tm_mon],
-                              1900 + time_buf.tm_year,
-                              time_buf.tm_hour,
-                              time_buf.tm_min,
-                              time_buf.tm_sec);
+  *time_string = absl::StrFormat(
+      "%s, %02d %s %4d %02d:%02d:%02d", kWeekDay[time_buf.tm_wday],
+      time_buf.tm_mday, kMonth[time_buf.tm_mon], 1900 + time_buf.tm_year,
+      time_buf.tm_hour, time_buf.tm_min, time_buf.tm_sec);
   if (include_microseconds) {
     // Append microseconds.
     int remainder = time % 1000000;
@@ -102,23 +98,27 @@ bool ConvertTimeToString(int64 time_ms, GoogleString* time_string) {
 // This function is similar to ConvertTimeToString, except it takes time_us
 // and returns a string with microsecond accuracy.
 bool ConvertTimeToStringWithUs(int64 time_us, GoogleString* time_string) {
-  return(TimeToString(time_us, time_string, true));
+  return (TimeToString(time_us, time_string, true));
 }
 
-bool ConvertStringToTime(const StringPiece& time_string, int64 *time_ms) {
+bool ConvertStringToTime(const StringPiece& time_string, int64* time_ms) {
   if (time_string.empty()) {
     *time_ms = 0;
     return false;
   }
-  PRTime result_time_us = 0;
-  PRStatus result = PR_ParseTimeString(time_string.as_string().c_str(),
-                                       PR_FALSE, &result_time_us);
-  if (PR_SUCCESS != result) {
-    return false;
+  absl::Time time;
+  static const auto& rfc7231_date_formats = *new std::array<std::string, 3>{
+      "%a, %d %b %Y %H:%M:%S GMT", "%A, %d-%b-%y %H:%M:%S GMT",
+      "%a %b %e %H:%M:%S %Y"};
+  for (const std::string& format : rfc7231_date_formats) {
+    if (absl::ParseTime(format, time_string, &time, nullptr)) {
+      *time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     absl::ToChronoTime(time).time_since_epoch())
+                     .count();
+      return true;
+    }
   }
-
-  *time_ms = result_time_us / 1000;
-  return true;
+  return false;
 }
 
 }  // namespace net_instaweb

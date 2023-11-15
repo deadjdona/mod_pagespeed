@@ -1,26 +1,29 @@
-// Copyright 2011 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Authors: morlovich@google.com (Maksim Orlovich)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/kernel/thread/scheduler_thread.h"
 
 #include "base/logging.h"
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/function.h"
-#include "pagespeed/kernel/thread/scheduler.h"
 #include "pagespeed/kernel/base/timer.h"
+#include "pagespeed/kernel/thread/scheduler.h"
 
 namespace net_instaweb {
 
@@ -29,10 +32,10 @@ namespace net_instaweb {
 class SchedulerThread::CleanupFunction : public Function {
  public:
   explicit CleanupFunction(SchedulerThread* parent) : parent_(parent) {}
-  virtual ~CleanupFunction() {}
+  ~CleanupFunction() override {}
 
  protected:
-  virtual void Run() {
+  void Run() override {
     {
       ScopedMutex lock(parent_->scheduler_->mutex());
       parent_->quit_ = true;
@@ -42,7 +45,7 @@ class SchedulerThread::CleanupFunction : public Function {
     delete parent_;
   }
 
-  virtual void Cancel() {
+  void Cancel() override {
     LOG(DFATAL) << "CleanupFunction does not expect to be cancelled";
   }
 
@@ -59,9 +62,7 @@ SchedulerThread::SchedulerThread(ThreadSystem* thread_system,
 
 SchedulerThread::~SchedulerThread() {}
 
-Function* SchedulerThread::MakeDeleter() {
-  return new CleanupFunction(this);
-}
+Function* SchedulerThread::MakeDeleter() { return new CleanupFunction(this); }
 
 void SchedulerThread::Run() {
   ScopedMutex lock(scheduler_->mutex());

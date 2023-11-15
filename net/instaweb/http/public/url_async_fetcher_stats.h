@@ -1,20 +1,22 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovichz@google.com (Maksim Orlovich)
 // Wrapper around a UrlAsyncFetcher that adds statistics and histograms.
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_URL_ASYNC_FETCHER_STATS_H_
@@ -46,11 +48,9 @@ class UrlAsyncFetcherStats : public UrlAsyncFetcher {
   //
   // Does not own base_fetcher (so you can have multiple UrlAsyncFetcherStats
   // objects around a single UrlAsyncFetcher object).
-  UrlAsyncFetcherStats(StringPiece prefix,
-                       UrlAsyncFetcher* base_fetcher,
-                       Timer* timer,
-                       Statistics* statistics);
-  virtual ~UrlAsyncFetcherStats();
+  UrlAsyncFetcherStats(StringPiece prefix, UrlAsyncFetcher* base_fetcher,
+                       Timer* timer, Statistics* statistics);
+  ~UrlAsyncFetcherStats() override;
 
   // This must be called once for every unique prefix used with
   // UrlAsyncFetcherStats.
@@ -58,12 +58,11 @@ class UrlAsyncFetcherStats : public UrlAsyncFetcher {
 
   // Reimplementation of UrlAsyncFetcher methods. See base class
   // for API specifications.
-  virtual bool SupportsHttps() const;
-  virtual void Fetch(const GoogleString& url,
-                     MessageHandler* message_handler,
-                     AsyncFetch* fetch);
-  virtual int64 timeout_ms();
-  virtual void ShutDown();
+  bool SupportsHttps() const override;
+  void Fetch(const GoogleString& url, MessageHandler* message_handler,
+             AsyncFetch* fetch) override;
+  int64 timeout_ms() override;
+  void ShutDown() override;
 
  private:
   class StatsAsyncFetch;

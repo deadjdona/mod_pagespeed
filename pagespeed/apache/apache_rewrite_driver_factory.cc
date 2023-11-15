@@ -1,36 +1,37 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmarantz@google.com (Joshua Marantz)
-//         lsong@google.com (Libo Song)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/apache/apache_rewrite_driver_factory.h"
 
 #include <unistd.h>
 
-#include "pagespeed/apache/apache_httpd_includes.h"
-#include "apr_pools.h"
 #include "ap_mpm.h"
-
+#include "apr_pools.h"
 #include "base/logging.h"
+#include "net/instaweb/rewriter/public/rewrite_driver_factory.h"
+#include "net/instaweb/rewriter/public/server_context.h"
 #include "pagespeed/apache/apache_config.h"
+#include "pagespeed/apache/apache_httpd_includes.h"
 #include "pagespeed/apache/apache_message_handler.h"
 #include "pagespeed/apache/apache_server_context.h"
 #include "pagespeed/apache/apache_thread_system.h"
 #include "pagespeed/apache/apr_timer.h"
-#include "net/instaweb/rewriter/public/rewrite_driver_factory.h"
-#include "net/instaweb/rewriter/public/server_context.h"
 #include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/null_shared_mem.h"
 #include "pagespeed/kernel/base/stl_util.h"
@@ -49,14 +50,11 @@ namespace net_instaweb {
 class ProcessContext;
 
 ApacheRewriteDriverFactory::ApacheRewriteDriverFactory(
-    const ProcessContext& process_context,
-    server_rec* server, const StringPiece& version)
-    : SystemRewriteDriverFactory(
-          process_context,
-          new ApacheThreadSystem,
-          NULL, /* default shared memory runtime */
-          server->server_hostname,
-          server->port),
+    const ProcessContext& process_context, server_rec* server,
+    const StringPiece& version)
+    : SystemRewriteDriverFactory(process_context, new ApacheThreadSystem,
+                                 nullptr, /* default shared memory runtime */
+                                 server->server_hostname, server->port),
       server_rec_(server),
       scheduler_thread_(nullptr),
       version_(version.data(), version.size()),
@@ -64,7 +62,7 @@ ApacheRewriteDriverFactory::ApacheRewriteDriverFactory(
           server_rec_, version_, timer(), thread_system()->NewMutex())),
       apache_html_parse_message_handler_(new ApacheMessageHandler(
           server_rec_, version_, timer(), thread_system()->NewMutex())) {
-  apr_pool_create(&pool_, NULL);
+  apr_pool_create(&pool_, nullptr);
 
   // Apache defaults UsePerVhostStatistics to false for historical reasons, but
   // more recent implementations default it to true.
@@ -111,9 +109,7 @@ ApacheRewriteDriverFactory::~ApacheRewriteDriverFactory() {
   ControllerManager::DetachFromControllerProcess();
 }
 
-Timer* ApacheRewriteDriverFactory::DefaultTimer() {
-  return new AprTimer();
-}
+Timer* ApacheRewriteDriverFactory::DefaultTimer() { return new AprTimer(); }
 
 MessageHandler* ApacheRewriteDriverFactory::DefaultHtmlParseMessageHandler() {
   return apache_html_parse_message_handler_;
@@ -133,7 +129,7 @@ void ApacheRewriteDriverFactory::SetupCaches(ServerContext* server_context) {
   // separating out rewriting infrastructure from rewriters.
   ApacheServerContext* apache_server_context =
       dynamic_cast<ApacheServerContext*>(server_context);
-  CHECK(apache_server_context != NULL);
+  CHECK(apache_server_context != nullptr);
   apache_server_context->InitProxyFetchFactory();
 }
 
@@ -183,8 +179,8 @@ void ApacheRewriteDriverFactory::ShutDownMessageHandlers() {
   //
   // TODO(jefftk): merge ApacheMessageHandler and NgxMessageHandler into
   // SystemMessageHandler and then move this into System.
-  apache_message_handler_->set_buffer(NULL);
-  apache_html_parse_message_handler_->set_buffer(NULL);
+  apache_message_handler_->set_buffer(nullptr);
+  apache_html_parse_message_handler_->set_buffer(nullptr);
 }
 
 void ApacheRewriteDriverFactory::SetupMessageHandlers() {
@@ -192,7 +188,7 @@ void ApacheRewriteDriverFactory::SetupMessageHandlers() {
   // SystemMessageHandler and then move this into System.
   apache_message_handler_->SetPidString(static_cast<int64>(getpid()));
   apache_html_parse_message_handler_->SetPidString(
-            static_cast<int64>(getpid()));
+      static_cast<int64>(getpid()));
 }
 
 void ApacheRewriteDriverFactory::SetCircularBuffer(

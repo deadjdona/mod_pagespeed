@@ -1,26 +1,31 @@
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: yeputons@google.com (Egor Suvorov)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 #include "pagespeed/system/external_server_spec.h"
 
 #include <utility>
 
 namespace net_instaweb {
 
-bool ExternalServerSpec::SetFromString(
-    StringPiece value_string, int default_port, GoogleString* error_detail) {
+bool ExternalServerSpec::SetFromString(StringPiece value_string,
+                                       int default_port,
+                                       GoogleString* error_detail) {
   StringPieceVector host_port;
   SplitStringPieceToVector(value_string, ":", &host_port,
                            false /* omit_empty_strings */);
@@ -52,8 +57,9 @@ bool ExternalServerSpec::SetFromString(
   return true;
 }
 
-bool ExternalClusterSpec::SetFromString(
-    StringPiece value_string, int default_port, GoogleString* error_detail) {
+bool ExternalClusterSpec::SetFromString(StringPiece value_string,
+                                        int default_port,
+                                        GoogleString* error_detail) {
   if (value_string.empty()) {
     servers.clear();
     return true;

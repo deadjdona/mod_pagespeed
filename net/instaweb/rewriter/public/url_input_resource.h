@@ -1,20 +1,22 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: sligocki@google.com (Shawn Ligocki)
 //
 // Input resource created based on a network resource.
 
@@ -36,20 +38,18 @@ class Statistics;
 class UrlInputResource : public CacheableResourceBase {
  public:
   // Created only from RewriteDriver::CreateInputResource*
-  virtual ~UrlInputResource();
+  ~UrlInputResource() override;
 
   static void InitStats(Statistics* stats);
 
  private:
   friend class RewriteDriver;
   friend class UrlInputResourceTest;
-  UrlInputResource(RewriteDriver* rewrite_driver,
-                   const ContentType* type,
-                   const StringPiece& url,
-                   bool is_authorized_domain);
+  UrlInputResource(RewriteDriver* rewrite_driver, const ContentType* type,
+                   const StringPiece& url, bool is_authorized_domain);
 
-  virtual void PrepareRequest(const RequestContextPtr& request_context,
-                              RequestHeaders* headers);
+  void PrepareRequest(const RequestContextPtr& request_context,
+                      RequestHeaders* headers) override;
 
   // If the resource is from a domain that is not explicitly authorized,
   // the domain for the resource is stored in origin_ by the constructor

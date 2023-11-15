@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmaessen@google.com (Jan Maessen)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_JAVASCRIPT_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_JAVASCRIPT_FILTER_H_
@@ -68,7 +69,7 @@ class JavascriptFilter : public RewriteFilter {
   void EndElementImpl(HtmlElement* element) override;
   void IEDirective(HtmlIEDirectiveNode* directive) override;
 
-  const char* Name() const override { return "Javascript"; }
+  const char* Name() const override { return "JavascriptFilter"; }
   const char* id() const override { return RewriteOptions::kJavascriptMinId; }
   RewriteContext* MakeRewriteContext() override;
   ScriptUsage GetScriptUsage() const override { return kWillInjectScripts; }
@@ -82,15 +83,11 @@ class JavascriptFilter : public RewriteFilter {
  private:
   class Context;
 
-  typedef enum {
-    kNoScript,
-    kExternalScript,
-    kInlineScript
-  } ScriptType;
+  typedef enum { kNoScript, kExternalScript, kInlineScript } ScriptType;
 
   inline void RewriteInlineScript(HtmlCharactersNode* body_node);
-  inline void RewriteExternalScript(
-      HtmlElement* script_in_progress, HtmlElement::Attribute* script_src);
+  inline void RewriteExternalScript(HtmlElement* script_in_progress,
+                                    HtmlElement::Attribute* script_src);
 
   // Set up config_ if it has not already been initialized.  We must do this
   // lazily because at filter creation time many of the options have not yet
@@ -105,7 +102,7 @@ class JavascriptFilter : public RewriteFilter {
   // some_missing_scripts indicates that we stopped processing a script and
   // therefore can't assume we know all of the Javascript on a page.
   bool some_missing_scripts_;
-  scoped_ptr<JavascriptRewriteConfig> config_;
+  std::unique_ptr<JavascriptRewriteConfig> config_;
   ScriptTagScanner script_tag_scanner_;
 
   DISALLOW_COPY_AND_ASSIGN(JavascriptFilter);

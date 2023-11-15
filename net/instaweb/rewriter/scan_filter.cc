@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/scan_filter.h"
 
@@ -40,12 +41,9 @@
 
 namespace net_instaweb {
 
-ScanFilter::ScanFilter(RewriteDriver* driver)
-    : driver_(driver) {
-}
+ScanFilter::ScanFilter(RewriteDriver* driver) : driver_(driver) {}
 
-ScanFilter::~ScanFilter() {
-}
+ScanFilter::~ScanFilter() {}
 
 void ScanFilter::StartDocument() {
   // TODO(jmarantz): consider having rewrite_driver access the url in this
@@ -58,9 +56,10 @@ void ScanFilter::StartDocument() {
   // Set the driver's containing charset to whatever the headers set it to; if
   // they don't set it to anything, blank the driver's so we know it's not set.
   const ResponseHeaders* headers = driver_->response_headers();
-  driver_->set_containing_charset(headers == NULL ? "" :
-                                  headers->DetermineCharset());
+  driver_->set_containing_charset(
+      headers == nullptr ? "" : headers->DetermineCharset());
 
+  driver_->mutable_content_security_policy()->Clear();
   if (driver_->options()->honor_csp() && headers != nullptr) {
     ConstStringStarVector values;
     if (headers->Lookup(HttpAttributes::kContentSecurityPolicy, &values)) {
@@ -72,13 +71,9 @@ void ScanFilter::StartDocument() {
   }
 }
 
-void ScanFilter::Cdata(HtmlCdataNode* cdata) {
-  seen_any_nodes_ = true;
-}
+void ScanFilter::Cdata(HtmlCdataNode* cdata) { seen_any_nodes_ = true; }
 
-void ScanFilter::Comment(HtmlCommentNode* comment) {
-  seen_any_nodes_ = true;
-}
+void ScanFilter::Comment(HtmlCommentNode* comment) { seen_any_nodes_ = true; }
 
 void ScanFilter::IEDirective(HtmlIEDirectiveNode* directive) {
   seen_any_nodes_ = true;
@@ -109,9 +104,26 @@ void ScanFilter::StartElement(HtmlElement* element) {
     // See http://www.whatwg.org/specs/web-apps/current-work/multipage
     // /semantics.html#the-base-element
     //
-    // TODO(jmarantz): If the base is present but cannot be decoded, we should
-    // probably not do any resource rewriting at all.
-    if ((href != NULL) && (href->DecodedValueOrNull() != NULL)) {
+    if (href != nullptr) {
+      if (href->DecodedValueOrNull() == nullptr) {
+        // Can't decode base well, so give up on using.
+        driver_->set_other_base_problem();
+        return;
+      }
+
+      // It would be much better if we were to use IsBasePermitted here, but
+      // we may not be able to set previous_origin accurately. So instead,
+      // we act overly conservatively and handle
+      if (driver_->content_security_policy().HasDirective(
+              CspDirective::kBaseUri)) {
+        driver_->InsertDebugComment(
+            "Unable to check safety of a base with CSP base-uri, "
+            "proceeding conservatively.",
+            element);
+        driver_->set_other_base_problem();
+        return;
+      }
+
       // TODO(jmarantz): consider having rewrite_driver access the url in this
       // class, rather than poking it into rewrite_driver.
       GoogleString new_base = href->DecodedValueOrNull();
@@ -141,7 +153,8 @@ void ScanFilter::StartElement(HtmlElement* element) {
 
   if (driver_->options()->honor_csp() &&
       element->keyword() == HtmlName::kMeta) {
-    // Note: https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
+    // Note:
+    // https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
     // requires us to check whether the meta element is a child of a <head>.
     // We cannot do it reliably since we don't do full HTML5 parsing (complete
     // with inventing missing nodes), so we conservatively assume that the
@@ -170,12 +183,11 @@ void ScanFilter::StartElement(HtmlElement* element) {
   // 4. If there is a meta tag in the HTML, use the encoding specified if any.
   // 5. There are various other heuristics listed which are not implemented.
   // 6. Otherwise, use no charset or default to something "sensible".
-  if (!seen_meta_tag_charset_ &&
-      driver_->containing_charset().empty() &&
+  if (!seen_meta_tag_charset_ && driver_->containing_charset().empty() &&
       element->keyword() == HtmlName::kMeta) {
     GoogleString content, mime_type, charset;
-    if (CommonFilter::ExtractMetaTagDetails(*element, NULL,
-                                            &content, &mime_type, &charset)) {
+    if (CommonFilter::ExtractMetaTagDetails(*element, nullptr, &content,
+                                            &mime_type, &charset)) {
       if (!charset.empty()) {
         driver_->set_containing_charset(charset);
         seen_meta_tag_charset_ = true;
@@ -188,7 +200,7 @@ void ScanFilter::EndElement(HtmlElement* element) {
   if (element->keyword() == HtmlName::kBase &&
       !driver_->options()->domain_lawyer()->proxy_suffix().empty()) {
     HtmlElement::Attribute* href = element->FindAttribute(HtmlName::kHref);
-    if (href != NULL) {
+    if (href != nullptr) {
       href->SetValue(driver_->base_url().AllExceptQuery());
     }
   }

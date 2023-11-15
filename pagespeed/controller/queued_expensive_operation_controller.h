@@ -1,18 +1,21 @@
-// Copyright 2015 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_CONTROLLER_QUEUED_EXPENSIVE_OPERATION_CONTROLLER_H_
 #define PAGESPEED_CONTROLLER_QUEUED_EXPENSIVE_OPERATION_CONTROLLER_H_
@@ -37,8 +40,7 @@ namespace net_instaweb {
 // process/multi-threaded environment, or through an external RPC system.
 // See WorkBoundExpensiveOperationController for an alternate implementation
 // that does not have this limitation.
-class QueuedExpensiveOperationController
-    : public ExpensiveOperationController {
+class QueuedExpensiveOperationController : public ExpensiveOperationController {
  public:
   static const char kActiveExpensiveOperations[];
   static const char kQueuedExpensiveOperations[];
@@ -47,11 +49,11 @@ class QueuedExpensiveOperationController
   QueuedExpensiveOperationController(int max_expensive_operations,
                                      ThreadSystem* thread_system,
                                      Statistics* stats);
-  virtual ~QueuedExpensiveOperationController();
+  ~QueuedExpensiveOperationController() override;
 
   // ExpensiveOperationController interface.
-  virtual void ScheduleExpensiveOperation(Function* callback);
-  virtual void NotifyExpensiveOperationComplete();
+  void ScheduleExpensiveOperation(Function* callback) override;
+  void NotifyExpensiveOperationComplete() override;
 
   static void InitStats(Statistics* stats);
 
@@ -65,7 +67,7 @@ class QueuedExpensiveOperationController
   const int max_in_progress_;
   std::queue<Function*> queue_ GUARDED_BY(mutex_);
   int num_in_progress_ GUARDED_BY(mutex_);
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   UpDownCounter* active_operations_counter_;
   UpDownCounter* queued_operations_counter_;
   TimedVariable* permitted_operations_counter_;

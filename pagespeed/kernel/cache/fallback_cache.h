@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_CACHE_FALLBACK_CACHE_H_
 #define PAGESPEED_KERNEL_CACHE_FALLBACK_CACHE_H_
@@ -44,32 +45,31 @@ class FallbackCache : public CacheInterface {
   // disable via set_account_for_key_size) on put. The threshold is inclusive:
   // up to that many bytes will be stored into small_object_cache.
   FallbackCache(CacheInterface* small_object_cache,
-                CacheInterface* large_object_cache,
-                int threshold_bytes,
+                CacheInterface* large_object_cache, int threshold_bytes,
                 MessageHandler* handler);
-  virtual ~FallbackCache();
+  ~FallbackCache() override;
 
-  virtual void Get(const GoogleString& key, Callback* callback);
-  virtual void Put(const GoogleString& key, const SharedString& value);
-  virtual void Delete(const GoogleString& key);
-  virtual void MultiGet(MultiGetRequest* request);
-  virtual bool IsBlocking() const {
+  void Get(const GoogleString& key, Callback* callback) override;
+  void Put(const GoogleString& key, const SharedString& value) override;
+  void Delete(const GoogleString& key) override;
+  void MultiGet(MultiGetRequest* request) override;
+  bool IsBlocking() const override {
     // We can fulfill our guarantee only if both caches block.
     return (small_object_cache_->IsBlocking() &&
             large_object_cache_->IsBlocking());
   }
 
-  virtual bool IsHealthy() const {
+  bool IsHealthy() const override {
     return (small_object_cache_->IsHealthy() &&
             large_object_cache_->IsHealthy());
   }
 
-  virtual void ShutDown() {
+  void ShutDown() override {
     small_object_cache_->ShutDown();
     large_object_cache_->ShutDown();
   }
 
-  virtual GoogleString Name() const {
+  GoogleString Name() const override {
     return FormatName(small_object_cache_->Name(), large_object_cache_->Name());
   }
   static GoogleString FormatName(StringPiece small, StringPiece large);
@@ -79,9 +79,9 @@ class FallbackCache : public CacheInterface {
   void set_account_for_key_size(bool x) { account_for_key_size_ = x; }
 
  private:
-  void DecodeValueMatchingKeyAndCallCallback(
-      const GoogleString& key, const char* data, size_t data_len,
-      Callback* callback);
+  void DecodeValueMatchingKeyAndCallCallback(const GoogleString& key,
+                                             const char* data, size_t data_len,
+                                             Callback* callback);
 
   CacheInterface* small_object_cache_;
   CacheInterface* large_object_cache_;

@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/rewrite_filter.h"
 
@@ -22,15 +23,14 @@
 #include "net/instaweb/rewriter/public/rewrite_driver.h"
 #include "pagespeed/kernel/base/charset_util.h"
 #include "pagespeed/kernel/base/string_util.h"
-#include "util/utf8/public/unicodetext.h"
-#include "webutil/css/parser.h"
+#include "third_party/css_parser/src/util/utf8/public/unicodetext.h"
+#include "third_party/css_parser/src/webutil/css/parser.h"
 
 namespace net_instaweb {
 
 class RewriteContext;
 
-RewriteFilter::~RewriteFilter() {
-}
+RewriteFilter::~RewriteFilter() {}
 
 void RewriteFilter::DetermineEnabled(GoogleString* disabled_reason) {
   set_is_enabled(true);
@@ -43,22 +43,17 @@ const UrlSegmentEncoder* RewriteFilter::encoder() const {
   return driver()->default_encoder();
 }
 
-bool RewriteFilter::ComputeOnTheFly() const {
-  return false;
-}
+bool RewriteFilter::ComputeOnTheFly() const { return false; }
 
-RewriteContext* RewriteFilter::MakeRewriteContext() {
-  return NULL;
-}
+RewriteContext* RewriteFilter::MakeRewriteContext() { return nullptr; }
 
 RewriteContext* RewriteFilter::MakeNestedRewriteContext(
     RewriteContext* parent, const ResourceSlotPtr& slot) {
-  return NULL;
+  return nullptr;
 }
 
 StringPiece RewriteFilter::GetCharsetForScript(
-    const Resource* script,
-    const StringPiece attribute_charset,
+    const Resource* script, const StringPiece attribute_charset,
     const StringPiece enclosing_charset) {
   // 1. If the script has a Content-Type with a charset, use that.
   if (!script->charset().empty()) {
@@ -87,8 +82,7 @@ StringPiece RewriteFilter::GetCharsetForScript(
 }
 
 GoogleString RewriteFilter::GetCharsetForStylesheet(
-    const Resource* stylesheet,
-    const StringPiece attribute_charset,
+    const Resource* stylesheet, const StringPiece attribute_charset,
     const StringPiece enclosing_charset) {
   // 1. If the stylesheet has a Content-Type with a charset, use that, else
   if (!stylesheet->charset().empty()) {
@@ -98,7 +92,8 @@ GoogleString RewriteFilter::GetCharsetForStylesheet(
   // 2. If the stylesheet has an initial @charset, use that.
   StringPiece css(stylesheet->ExtractUncompressedContents());
   StripUtf8Bom(&css);
-  Css::Parser parser(css);
+  CssStringPiece tmp(css.data(), css.size());
+  Css::Parser parser(tmp);
   UnicodeText css_charset = parser.ExtractCharset();
   if (parser.errors_seen_mask() == 0) {
     GoogleString at_charset = UnicodeTextToUTF8(css_charset);
@@ -131,7 +126,7 @@ GoogleString RewriteFilter::GetCharsetForStylesheet(
 const RewriteOptions::Filter* RewriteFilter::RelatedFilters(
     int* num_filters) const {
   *num_filters = 0;
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace net_instaweb

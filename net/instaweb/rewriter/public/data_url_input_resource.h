@@ -1,27 +1,28 @@
-#ifndef NET_INSTAWEB_REWRITER_PUBLIC_DATA_URL_INPUT_RESOURCE_H_
-#define NET_INSTAWEB_REWRITER_PUBLIC_DATA_URL_INPUT_RESOURCE_H_
-
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmaessen@google.com (Jan Maessen)
-//
 // An input resource representing a data: url.  This is uncommon in web
 // pages, but we generate these urls as a result of image inlining and
 // this confuses subsequent filters in certain cases.
+
+#ifndef NET_INSTAWEB_REWRITER_PUBLIC_DATA_URL_INPUT_RESOURCE_H_
+#define NET_INSTAWEB_REWRITER_PUBLIC_DATA_URL_INPUT_RESOURCE_H_
 
 #include "net/instaweb/http/public/request_context.h"
 #include "net/instaweb/rewriter/public/resource.h"
@@ -57,31 +58,30 @@ class DataUrlInputResource : public Resource {
     return resource;
   }
 
-  virtual ~DataUrlInputResource();
+  ~DataUrlInputResource() override;
 
-  virtual bool IsValidAndCacheable() const;
+  bool IsValidAndCacheable() const override;
 
   // Set OutputPartition's input info used for expiration validation.
-  virtual void FillInPartitionInputInfo(HashHint include_content_hash,
-                                        InputInfo* input);
+  void FillInPartitionInputInfo(HashHint include_content_hash,
+                                InputInfo* input) override;
 
-  virtual GoogleString url() const { return *url_.get(); }
+  GoogleString url() const override { return *url_.get(); }
 
-  virtual bool UseHttpCache() const { return false; }
+  bool UseHttpCache() const override { return false; }
 
  protected:
-  virtual void LoadAndCallback(NotCacheablePolicy not_cacheable_policy,
-                               const RequestContextPtr& request_context,
-                               AsyncCallback* callback);
+  void LoadAndCallback(NotCacheablePolicy not_cacheable_policy,
+                       const RequestContextPtr& request_context,
+                       AsyncCallback* callback) override;
 
  private:
-  DataUrlInputResource(const GoogleString* url,
-                       Encoding encoding,
+  DataUrlInputResource(const GoogleString* url, Encoding encoding,
                        const ContentType* type,
                        const StringPiece& encoded_contents,
                        const RewriteDriver* driver);
 
-  scoped_ptr<const GoogleString> url_;
+  std::unique_ptr<const GoogleString> url_;
   const Encoding encoding_;
   const StringPiece encoded_contents_;  // substring of url.
   GoogleString decoded_contents_;

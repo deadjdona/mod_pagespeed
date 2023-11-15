@@ -1,18 +1,22 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //         lsong@google.com (Libo Song)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_SYNC_FETCHER_ADAPTER_CALLBACK_H_
@@ -81,16 +85,15 @@ class SyncFetcherAdapterCallback : public AsyncFetch {
   void TimedWait(int64 timeout_ms) EXCLUSIVE_LOCKS_REQUIRED(mutex_);
 
  protected:
-  virtual void HandleDone(bool success) LOCKS_EXCLUDED(mutex_);
-  virtual bool HandleWrite(const StringPiece& content,
-                           MessageHandler* handler) {
+  void HandleDone(bool success) LOCKS_EXCLUDED(mutex_) override;
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override {
     return writer_->Write(content, handler);
   }
-  virtual bool HandleFlush(MessageHandler* handler) {
+  bool HandleFlush(MessageHandler* handler) override {
     return writer_->Flush(handler);
   }
-  virtual void HandleHeadersComplete() {
-  }
+  void HandleHeadersComplete() override {}
 
  private:
   // This class wraps around an external Writer and passes through calls to that
@@ -102,9 +105,9 @@ class SyncFetcherAdapterCallback : public AsyncFetch {
     ProtectedWriter(SyncFetcherAdapterCallback* callback, Writer* orig_writer)
         : callback_(callback), orig_writer_(orig_writer) {}
 
-    virtual bool Write(const StringPiece& buf, MessageHandler* handler)
+    bool Write(const StringPiece& buf, MessageHandler* handler) override
         LOCKS_EXCLUDED(callback_->mutex_);
-    virtual bool Flush(MessageHandler* handler)
+    bool Flush(MessageHandler* handler) override
         LOCKS_EXCLUDED(callback_->mutex_);
 
    private:
@@ -113,15 +116,15 @@ class SyncFetcherAdapterCallback : public AsyncFetch {
 
     DISALLOW_COPY_AND_ASSIGN(ProtectedWriter);
   };
-  virtual ~SyncFetcherAdapterCallback();
+  ~SyncFetcherAdapterCallback() override;
 
-  scoped_ptr<ThreadSystem::CondvarCapableMutex> mutex_;
-  scoped_ptr<ThreadSystem::Condvar> cond_;
+  std::unique_ptr<ThreadSystem::CondvarCapableMutex> mutex_;
+  std::unique_ptr<ThreadSystem::Condvar> cond_;
 
   bool done_ GUARDED_BY(mutex_);
   bool success_ GUARDED_BY(mutex_);
   bool released_ GUARDED_BY(mutex_);
-  scoped_ptr<Writer> writer_;
+  std::unique_ptr<Writer> writer_;
 
   DISALLOW_COPY_AND_ASSIGN(SyncFetcherAdapterCallback);
 };

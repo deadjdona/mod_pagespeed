@@ -1,20 +1,22 @@
 /*
- * Copyright 2016 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovich@google.com (Maksim Orlovich)
 //
 // Contains special slots that help rewrite images inside srcset attributes.
 
@@ -34,16 +36,17 @@
 
 namespace net_instaweb {
 
-SrcSetSlotCollection::SrcSetSlotCollection(
-    RewriteDriver* driver, HtmlElement* element,
-    HtmlElement::Attribute* attribute)
-    : driver_(driver), element_(element), attribute_(attribute),
+SrcSetSlotCollection::SrcSetSlotCollection(RewriteDriver* driver,
+                                           HtmlElement* element,
+                                           HtmlElement::Attribute* attribute)
+    : driver_(driver),
+      element_(element),
+      attribute_(attribute),
       filter_(nullptr),
       // Note: these need to be deep-copied in case we run as a detached
       // rewrite, in which case element_ may be dead.
       begin_line_number_(element->begin_line_number()),
-      end_line_number_(element->end_line_number()) {
-}
+      end_line_number_(element->end_line_number()) {}
 
 void SrcSetSlotCollection::Initialize(CommonFilter* filter) {
   filter_ = filter;
@@ -60,21 +63,21 @@ void SrcSetSlotCollection::Initialize(CommonFilter* filter) {
       ResourcePtr resource(filter->CreateInputResourceOrInsertDebugComment(
           candidates_[i].url, RewriteDriver::InputRole::kImg, element_));
       if (resource.get() != nullptr) {
-        candidates_[i].slot = new SrcSetSlot(resource, this, i);
+        candidates_[i].slot.reset(new SrcSetSlot(resource, this, i));
       }
     }
   }
 }
 
-void SrcSetSlotCollection::ParseSrcSet(
-    StringPiece input, std::vector<ImageCandidate>* out) {
+void SrcSetSlotCollection::ParseSrcSet(StringPiece input,
+                                       std::vector<ImageCandidate>* out) {
   out->clear();
 
-  // ref: https://html.spec.whatwg.org/multipage/embedded-content.html#parse-a-srcset-attribute
+  // ref:
+  // https://html.spec.whatwg.org/multipage/embedded-content.html#parse-a-srcset-attribute
   while (true) {
     // Strip leading whitespace, commas.
-    while (!input.empty() &&
-           (IsHtmlSpace(input[0]) || input[0] == ',')) {
+    while (!input.empty() && (IsHtmlSpace(input[0]) || input[0] == ',')) {
       input.remove_prefix(1);
     }
 
@@ -149,12 +152,11 @@ void SrcSetSlotCollection::Commit() {
 }
 
 SrcSetSlot::SrcSetSlot(const ResourcePtr& resource,
-                       SrcSetSlotCollection* parent,
-                       int index)
-    : ResourceSlot(resource), parent_(parent), index_(index),
-      url_relativity_(
-          GoogleUrl::FindRelativity(parent_->url(index))) {
-}
+                       SrcSetSlotCollection* parent, int index)
+    : ResourceSlot(resource),
+      parent_(parent),
+      index_(index),
+      url_relativity_(GoogleUrl::FindRelativity(parent_->url(index))) {}
 
 SrcSetSlot::~SrcSetSlot() {}
 
@@ -163,11 +165,9 @@ void SrcSetSlot::Render() {
     return;
   }
 
-  parent_->set_url(
-      index_,
-      RelativizeOrPassthrough(
-          parent_->driver()->options(), resource()->url(),
-          url_relativity_, parent_->driver()->base_url()));
+  parent_->set_url(index_, RelativizeOrPassthrough(
+                               parent_->driver()->options(), resource()->url(),
+                               url_relativity_, parent_->driver()->base_url()));
   parent_->Commit();
 }
 

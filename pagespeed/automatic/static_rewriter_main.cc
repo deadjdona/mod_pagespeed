@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include <cstdio>
 
@@ -57,11 +58,9 @@ int main(int argc, char** argv) {
   const char* output_dir = argv[2];
   const char* html_name = argv[3];
 
-  GoogleString url = net_instaweb::StrCat("http://test.com/", html_name);
-  GoogleString input_file_path = net_instaweb::StrCat(input_dir, "/",
-                                                      html_name);
-  GoogleString output_file_path = net_instaweb::StrCat(output_dir, "/",
-                                                       html_name);
+  GoogleString url = StrCat("http://test.com/", html_name);
+  GoogleString input_file_path = StrCat(input_dir, "/", html_name);
+  GoogleString output_file_path = StrCat(output_dir, "/", html_name);
   GoogleString html_input_buffer, html_output_buffer;
   net_instaweb::FileSystem* file_system = static_rewriter.file_system();
   net_instaweb::MessageHandler* message_handler =
@@ -75,8 +74,8 @@ int main(int argc, char** argv) {
   } else if (!static_rewriter.ParseText(url, input_file_path, html_input_buffer,
                                         output_dir, &writer)) {
     fprintf(stderr, "StartParseId failed on url %s\n", url.c_str());
-  } else if (!file_system->WriteFileAtomic(
-      output_file_path, html_output_buffer, message_handler)) {
+  } else if (!file_system->WriteFileAtomic(output_file_path, html_output_buffer,
+                                           message_handler)) {
     fprintf(stderr, "failed to write file %s\n", output_file_path.c_str());
   } else {
     exit_status = 0;

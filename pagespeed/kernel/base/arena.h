@@ -1,26 +1,27 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: morlovich@google.com (Maksim Orlovich)
 
 #ifndef PAGESPEED_KERNEL_BASE_ARENA_H_
 #define PAGESPEED_KERNEL_BASE_ARENA_H_
 
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 #include "base/logging.h"
 #include "pagespeed/kernel/base/basictypes.h"
@@ -30,20 +31,16 @@ namespace net_instaweb {
 // This template keeps a packed set of objects inheriting from the same base
 // type (which must have a virtual destructor) where all of the
 // objects in the same arena are expected to be destroyed at once.
-template<typename T>
+template <typename T>
 class Arena {
  public:
   // All allocations we make will be aligned to this. We will also reserve
   // this much room for our work area, as it keeps things simple.
   static const size_t kAlign = 8;
 
-  Arena() {
-    InitEmpty();
-  }
+  Arena() { InitEmpty(); }
 
-  ~Arena() {
-    CHECK(chunks_.empty());
-  }
+  ~Arena() { CHECK(chunks_.empty()); }
 
   void* Allocate(size_t size) {
     size += kAlign;  // Need room to link the next object.
@@ -52,7 +49,7 @@ class Arena {
     DCHECK(sizeof(void*) <= kAlign);
     DCHECK(size < Chunk::kSize);
 
-    if (next_alloc_ + size > chunk_end_) {
+    if (chunk_end_ == NULL || next_alloc_ + size > chunk_end_) {
       AddChunk();
     }
 
@@ -130,7 +127,7 @@ class Arena {
   std::vector<Chunk*> chunks_;
 };
 
-template<typename T>
+template <typename T>
 void Arena<T>::AddChunk() {
   Chunk* chunk = new Chunk();
   chunks_.push_back(chunk);
@@ -139,7 +136,7 @@ void Arena<T>::AddChunk() {
   last_link_ = &scratch_;
 }
 
-template<typename T>
+template <typename T>
 void Arena<T>::DestroyObjects() {
   for (int i = 0; i < static_cast<int>(chunks_.size()); ++i) {
     // Walk through objects in this chunk.
@@ -154,7 +151,7 @@ void Arena<T>::DestroyObjects() {
   InitEmpty();
 }
 
-template<typename T>
+template <typename T>
 void Arena<T>::InitEmpty() {
   // The way this is initialized ensures that the next call to allocate
   // will call AddChunk(). Doing it this way rather than calling NewChunk()

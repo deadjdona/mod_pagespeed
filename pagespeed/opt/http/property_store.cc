@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: pulkitg@google.com (Pulkit Goyal)
 
 #include "pagespeed/opt/http/property_store.h"
 
@@ -28,28 +29,24 @@ namespace net_instaweb {
 
 namespace {
 
-Histogram* fast_finish_lookup_latency_ms_ = NULL;
+Histogram* fast_finish_lookup_latency_ms_ = nullptr;
 
 }  // namespace
 
-PropertyStore::PropertyStore()
-    : enable_get_cancellation_(false) {
-}
+PropertyStore::PropertyStore() : enable_get_cancellation_(false) {}
 
-PropertyStore::~PropertyStore() {
-}
+PropertyStore::~PropertyStore() {}
 
 void PropertyStoreGetCallback::InitStats(Statistics* statistics) {
   fast_finish_lookup_latency_ms_ =
       statistics->AddHistogram("PropertyStoreLatencyAfterFastFinishCalledMs");
 }
 
-PropertyStoreGetCallback::PropertyStoreGetCallback(
-    AbstractMutex* mutex,
-    PropertyPage* page,
-    bool is_cancellable,
-    BoolCallback* done,
-    Timer* timer)
+PropertyStoreGetCallback::PropertyStoreGetCallback(AbstractMutex* mutex,
+                                                   PropertyPage* page,
+                                                   bool is_cancellable,
+                                                   BoolCallback* done,
+                                                   Timer* timer)
     : mutex_(mutex),
       page_(page),
       is_cancellable_(is_cancellable),
@@ -57,11 +54,9 @@ PropertyStoreGetCallback::PropertyStoreGetCallback(
       delete_when_done_(false),
       done_called_(false),
       timer_(timer),
-      fast_finish_time_ms_(0) {
-}
+      fast_finish_time_ms_(0) {}
 
-PropertyStoreGetCallback::~PropertyStoreGetCallback() {
-}
+PropertyStoreGetCallback::~PropertyStoreGetCallback() {}
 
 void PropertyStoreGetCallback::FastFinishLookup() {
   if (!is_cancellable_) {
@@ -70,16 +65,16 @@ void PropertyStoreGetCallback::FastFinishLookup() {
   }
 
   // Call done callback if it is not yet called.
-  BoolCallback* done = NULL;
+  BoolCallback* done = nullptr;
   {
     ScopedMutex lock(mutex());
-    if (done_ == NULL) {
+    if (done_ == nullptr) {
       return;
     }
     // NULL out page_ since we shouldn't be touching it any longer.
-    page_ = NULL;
+    page_ = nullptr;
     done = done_;
-    done_ = NULL;
+    done_ = nullptr;
     fast_finish_time_ms_ = timer_->NowMs();
   }
 
@@ -88,17 +83,17 @@ void PropertyStoreGetCallback::FastFinishLookup() {
 }
 
 void PropertyStoreGetCallback::Done(bool success) {
-  BoolCallback* done = NULL;
+  BoolCallback* done = nullptr;
   bool delete_this = false;
   {
     ScopedMutex lock(mutex());
     DCHECK(!done_called_);
     // done_ will be NULL if FastFinishLookup() is called, though Done() is not
     // yet called.
-    if (done_ != NULL) {
-      page_ = NULL;
+    if (done_ != nullptr) {
+      page_ = nullptr;
       done = done_;
-      done_ = NULL;
+      done_ = nullptr;
     } else {
       DCHECK_NE(fast_finish_time_ms_, 0);
       int64 latency_ms = timer_->NowMs() - fast_finish_time_ms_;
@@ -109,7 +104,7 @@ void PropertyStoreGetCallback::Done(bool success) {
   }
 
   // Call done callback if it is not yet called.
-  if (done != NULL) {
+  if (done != nullptr) {
     done->Run(success);
   }
 
@@ -136,11 +131,10 @@ void PropertyStoreGetCallback::DeleteWhenDone() {
 }
 
 bool PropertyStoreGetCallback::AddPropertyValueProtobufToPropertyPage(
-      const PropertyCache::Cohort* cohort,
-      const PropertyValueProtobuf& pcache_value,
-      int64 min_write_timestamp_ms) {
+    const PropertyCache::Cohort* cohort,
+    const PropertyValueProtobuf& pcache_value, int64 min_write_timestamp_ms) {
   ScopedMutex lock(mutex());
-  if (page() == NULL || !page()->IsCacheValid(min_write_timestamp_ms)) {
+  if (page() == nullptr || !page()->IsCacheValid(min_write_timestamp_ms)) {
     return false;
   }
   page()->AddValueFromProtobuf(cohort, pcache_value);

@@ -1,20 +1,22 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovich@google.com (Maksim Orlovich)
 //
 // Special input resource for http://fonts.googleapis.com CSS,
 // needed due to the UA dependence. The font service delivers different loader
@@ -46,7 +48,7 @@ class GoogleFontServiceInputResource : public CacheableResourceBase {
   // Returns NULL if not recognized as a valid font service URL.
   static GoogleFontServiceInputResource* Make(const GoogleUrl& url,
                                               RewriteDriver* rewrite_driver);
-  virtual ~GoogleFontServiceInputResource();
+  ~GoogleFontServiceInputResource() override;
   static void InitStats(Statistics* stats);
 
   // Returns true if the URL looks like one from font service.
@@ -54,13 +56,12 @@ class GoogleFontServiceInputResource : public CacheableResourceBase {
 
  protected:
   // Overrides of CacheableResourceBase API.
-  virtual void PrepareRequest(const RequestContextPtr& request_context,
-                              RequestHeaders* headers);
-  virtual void PrepareResponseHeaders(ResponseHeaders* headers);
+  void PrepareRequest(const RequestContextPtr& request_context,
+                      RequestHeaders* headers) override;
+  void PrepareResponseHeaders(ResponseHeaders* headers) override;
 
  private:
-  GoogleFontServiceInputResource(RewriteDriver* rewrite_driver,
-                                 bool is_https,
+  GoogleFontServiceInputResource(RewriteDriver* rewrite_driver, bool is_https,
                                  const StringPiece& url,
                                  const StringPiece& cache_key,
                                  const GoogleString& user_agent);

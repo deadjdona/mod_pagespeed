@@ -1,20 +1,22 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: pulkitg@google.com (Pulkit Goyal)
 //
 // Composes two property stores to form a two level property cache storage
 // system.
@@ -39,30 +41,24 @@ class TwoLevelPropertyStore : public PropertyStore {
   TwoLevelPropertyStore(PropertyStore* primary_property_store,
                         PropertyStore* secondary_propery_store,
                         ThreadSystem* thread_system);
-  virtual ~TwoLevelPropertyStore();
+  ~TwoLevelPropertyStore() override;
 
   // It issues a lookup on the primary_property_store and lookup on
   // secondary_property_store will only be issued if properties are not
   // available in primary_property_store and lookup is not yet cancelled.
-  virtual void Get(
-      const GoogleString& url,
-      const GoogleString& options_signature_hash,
-      const GoogleString& cache_key_suffix,
-      const PropertyCache::CohortVector& cohort_list,
-      PropertyPage* page,
-      BoolCallback* done,
-      AbstractPropertyStoreGetCallback** callback);
+  void Get(const GoogleString& url, const GoogleString& options_signature_hash,
+           const GoogleString& cache_key_suffix,
+           const PropertyCache::CohortVector& cohort_list, PropertyPage* page,
+           BoolCallback* done,
+           AbstractPropertyStoreGetCallback** callback) override;
 
   // Write to both the storage system for the given key.
-  virtual void Put(
-      const GoogleString& url,
-      const GoogleString& options_signature_hash,
-      const GoogleString& cache_key_suffix,
-      const PropertyCache::Cohort* cohort,
-      const PropertyCacheValues* values,
-      BoolCallback* done);
+  void Put(const GoogleString& url, const GoogleString& options_signature_hash,
+           const GoogleString& cache_key_suffix,
+           const PropertyCache::Cohort* cohort,
+           const PropertyCacheValues* values, BoolCallback* done) override;
 
-  virtual GoogleString Name() const;
+  GoogleString Name() const override;
 
  private:
   PropertyStore* primary_property_store_;

@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovich@google.com (Maksim Orlovich)
 //
 // Contains CssResourceSlot (for representing locations in CSS AST during async
 // rewrites) and CssResourceSlotFactory (for getting the same slot object for
@@ -33,7 +35,9 @@
 #include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/http/google_url.h"
 
-namespace Css { class Values; }
+namespace Css {
+class Values;
+}
 
 namespace net_instaweb {
 
@@ -43,25 +47,25 @@ class RewriteOptions;
 // A place storing a rewritable URL inside a CSS AST.
 class CssResourceSlot : public ResourceSlot {
  public:
-  virtual void Render();
-  virtual void Finished();
-  virtual GoogleString LocationString() const;
+  void Render() override;
+  void Finished() override;
+  GoogleString LocationString() const override;
 
-  virtual HtmlElement* element() const { return NULL; }
+  HtmlElement* element() const override { return NULL; }
   Css::Values* values() const { return values_; }
   size_t value_index() const { return value_index_; }
   UrlRelativity url_relativity() const { return url_relativity_; }
 
-  virtual bool DirectSetUrl(const StringPiece& url);
-  virtual bool CanDirectSetUrl() { return true; }
+  bool DirectSetUrl(const StringPiece& url) override;
+  bool CanDirectSetUrl() override { return true; }
 
  protected:
-  CssResourceSlot(const ResourcePtr& resource,
-                  const GoogleUrl& trim_url, const RewriteOptions* options,
-                  Css::Values* values, size_t value_index);
+  CssResourceSlot(const ResourcePtr& resource, const GoogleUrl& trim_url,
+                  const RewriteOptions* options, Css::Values* values,
+                  size_t value_index);
 
   REFCOUNT_FRIEND_DECLARATION(CssResourceSlot);
-  virtual ~CssResourceSlot();
+  ~CssResourceSlot() override;
 
  private:
   friend class CssResourceSlotFactory;
@@ -89,8 +93,8 @@ class CssResourceSlotFactory {
   // not modified while this exists.
   CssResourceSlotPtr GetSlot(const ResourcePtr& resource,
                              const GoogleUrl& trim_url,
-                             const RewriteOptions* options,
-                             Css::Values* values, size_t value_index);
+                             const RewriteOptions* options, Css::Values* values,
+                             size_t value_index);
   CssResourceSlotPtr UniquifySlot(CssResourceSlotPtr slot);
 
  private:

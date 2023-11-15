@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/html/html_writer_filter.h"
 
@@ -34,24 +35,23 @@ static const int kDefaultMaxColumn = -1;
 
 HtmlWriterFilter::HtmlWriterFilter(HtmlParse* html_parse)
     : html_parse_(html_parse),
-      writer_(NULL),
+      writer_(nullptr),
       max_column_(kDefaultMaxColumn),
       case_fold_(false) {
   Clear();
 }
 
-HtmlWriterFilter::~HtmlWriterFilter() {
-}
+HtmlWriterFilter::~HtmlWriterFilter() {}
 
 void HtmlWriterFilter::Clear() {
-  lazy_close_element_ = NULL;
+  lazy_close_element_ = nullptr;
   column_ = 0;
   write_errors_ = 0;
 }
 
 void HtmlWriterFilter::TerminateLazyCloseElement() {
-  if (lazy_close_element_ != NULL) {
-    lazy_close_element_ = NULL;
+  if (lazy_close_element_ != nullptr) {
+    lazy_close_element_ = nullptr;
     if (!writer_->Write(">", html_parse_->message_handler())) {
       ++write_errors_;
     }
@@ -94,14 +94,14 @@ void HtmlWriterFilter::StartElement(HtmlElement* element) {
   EmitName(element->name());
 
   const HtmlElement::AttributeList& attrs = element->attributes();
-  for (HtmlElement::AttributeConstIterator i(attrs.begin());
-       i != attrs.end(); ++i) {
+  for (HtmlElement::AttributeConstIterator i(attrs.begin()); i != attrs.end();
+       ++i) {
     const HtmlElement::Attribute& attribute = *i;
     // If the column has grown too large, insert a newline.  It's always safe
     // to insert whitespace in the middle of tag parameters.
     int attr_length = 1 + attribute.name_str().size();
     if (max_column_ > 0) {
-      if (attribute.escaped_value() != NULL) {
+      if (attribute.escaped_value() != nullptr) {
         attr_length += 1 + strlen(attribute.escaped_value());
       }
       if ((column_ + attr_length) > max_column_) {
@@ -110,7 +110,7 @@ void HtmlWriterFilter::StartElement(HtmlElement* element) {
     }
     EmitBytes(" ");
     EmitName(attribute.name());
-    if (attribute.escaped_value() != NULL) {
+    if (attribute.escaped_value() != nullptr) {
       EmitBytes("=");
       StringPiece quote = attribute.quote_str();
       EmitBytes(quote);
@@ -181,7 +181,7 @@ void HtmlWriterFilter::EndElement(HtmlElement* element) {
       // got written after the element open, then we must
       // explicitly close it, so we fall through.
       if (lazy_close_element_ == element) {
-        lazy_close_element_ = NULL;
+        lazy_close_element_ = nullptr;
 
         // If this attribute was unquoted, or lacked a value, then we'll need
         // to add a space here to ensure that HTML parsers don't interpret the
@@ -189,7 +189,7 @@ void HtmlWriterFilter::EndElement(HtmlElement* element) {
         if (!element->attributes().IsEmpty()) {
           const HtmlElement::Attribute& attribute =
               *element->attributes().Last();
-          if ((attribute.escaped_value() == NULL) ||
+          if ((attribute.escaped_value() == nullptr) ||
               (attribute.quote_style() == HtmlElement::NO_QUOTE)) {
             EmitBytes(" ");
           }
@@ -238,9 +238,7 @@ void HtmlWriterFilter::Directive(HtmlDirectiveNode* directive) {
   EmitBytes(">");
 }
 
-void HtmlWriterFilter::StartDocument() {
-  Clear();
-}
+void HtmlWriterFilter::StartDocument() { Clear(); }
 
 void HtmlWriterFilter::EndDocument() {
   EmitBytes("");  // flushes any lazily closed elements at end of the document.

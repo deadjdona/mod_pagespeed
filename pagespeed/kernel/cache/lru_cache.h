@@ -1,25 +1,27 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_CACHE_LRU_CACHE_H_
 #define PAGESPEED_KERNEL_CACHE_LRU_CACHE_H_
 
 #include <cstddef>
+
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/cache_interface.h"
 #include "pagespeed/kernel/base/shared_string.h"
@@ -44,9 +46,9 @@ namespace net_instaweb {
 class LRUCache : public CacheInterface {
  public:
   explicit LRUCache(size_t max_size);
-  virtual ~LRUCache();
+  ~LRUCache() override;
 
-  virtual void Get(const GoogleString& key, Callback* callback);
+  void Get(const GoogleString& key, Callback* callback) override;
 
   // Puts an object into the cache, sharing the bytes.
   //
@@ -54,8 +56,8 @@ class LRUCache : public CacheInterface {
   // SharedString after having called Put, it will actually
   // modify the value in the cache.  We should change
   // SharedString to Copy-On-Write semantics.
-  virtual void Put(const GoogleString& key, const SharedString& new_value);
-  virtual void Delete(const GoogleString& key);
+  void Put(const GoogleString& key, const SharedString& new_value) override;
+  void Delete(const GoogleString& key) override;
 
   // Deletes all objects whose key starts with prefix.
   // Not part of cache interface. Exported for testing only.
@@ -90,18 +92,16 @@ class LRUCache : public CacheInterface {
   void ClearStats() { base_.ClearStats(); }
 
   static GoogleString FormatName() { return "LRUCache"; }
-  virtual GoogleString Name() const { return FormatName(); }
-  virtual bool IsBlocking() const { return true; }
-  virtual bool IsHealthy() const { return is_healthy_; }
-  virtual void ShutDown() { set_is_healthy(false); }
+  GoogleString Name() const override { return FormatName(); }
+  bool IsBlocking() const override { return true; }
+  bool IsHealthy() const override { return is_healthy_; }
+  void ShutDown() override { set_is_healthy(false); }
 
   void set_is_healthy(bool x) { is_healthy_ = x; }
 
  private:
   struct SharedStringHelper {
-    size_t size(const SharedString& ss) const {
-      return ss.size();
-    }
+    size_t size(const SharedString& ss) const { return ss.size(); }
     bool Equal(const SharedString& a, const SharedString& b) const {
       return a.Value() == b.Value();
     }

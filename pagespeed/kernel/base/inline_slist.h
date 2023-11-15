@@ -1,19 +1,22 @@
-// Copyright 2012 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: morlovich@google.com (Maksim Orlovich)
-//
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 // This contains a simple linked list that's optimized for memory usage,
 // cheap appends and traversals (including removals). Links
 // are stored within elements rather than externally.
@@ -30,12 +33,13 @@ namespace net_instaweb {
 
 // This forward declaration is necessary!  Ignore IWYU when it tells you to
 // remove it.  Sadly, the pragma is being ignored right now.
-template<class T> class InlineSList;
+template <class T>
+class InlineSList;
 
 // A helper base class for things that would get stored in the list.
 // You don't have to inherit this, and can implement next() and set_next()
 // directly.
-template<class T>
+template <class T>
 class InlineSListElement {
  protected:
   InlineSListElement() : next_(NULL) {}
@@ -62,7 +66,7 @@ class InlineSListElement {
 //
 // Representation: circular linked list with a pointer to tail. Iterators
 // store pointers to nodes before the one they're conceptually targeting.
-template<class T>
+template <class T>
 class InlineSList {
  private:
   // (Unfortunately, this private class has to be above the public: section
@@ -77,13 +81,9 @@ class InlineSList {
   // iterator for an empty list is a one-past-end iterator, as expected).
   class IterBase {
    protected:
-    IterBase(const InlineSList<T>* list, T* node)
-        : list_(list), node_(node) {
-    }
+    IterBase(const InlineSList<T>* list, T* node) : list_(list), node_(node) {}
 
-    bool AtEnd() const {
-      return (node_ == NULL);
-    }
+    bool AtEnd() const { return (node_ == NULL); }
 
     void Advance() {
       DCHECK(!AtEnd());
@@ -95,9 +95,7 @@ class InlineSList {
       }
     }
 
-    T* Data() {
-      return node_->next();
-    }
+    T* Data() { return node_->next(); }
 
     bool Equals(const IterBase& other) const {
       return (node_ == other.node_) && (list_ == other.list_);
@@ -181,15 +179,12 @@ class InlineSList {
 
   typedef ConstIterator const_iterator;
 
-  InlineSList() : tail_(NULL) {
-  }
+  InlineSList() : tail_(NULL) {}
 
   // The destructor deletes all the nodes in the list.
   ~InlineSList();
 
-  bool IsEmpty() const {
-    return (tail_ == NULL);
-  }
+  bool IsEmpty() const { return (tail_ == NULL); }
 
   void Append(T* node);
 
@@ -231,7 +226,7 @@ class InlineSList {
   DISALLOW_COPY_AND_ASSIGN(InlineSList);
 };
 
-template<class T>
+template <class T>
 inline InlineSList<T>::~InlineSList() {
   if (tail_ != NULL) {
     T* node = tail_->next();  // start at head node.
@@ -248,7 +243,7 @@ inline InlineSList<T>::~InlineSList() {
   tail_ = NULL;
 }
 
-template<class T>
+template <class T>
 inline void InlineSList<T>::Append(T* node) {
   if (tail_ == NULL) {
     tail_ = node;
@@ -260,7 +255,7 @@ inline void InlineSList<T>::Append(T* node) {
   }
 }
 
-template<class T>
+template <class T>
 inline void InlineSList<T>::Erase(Iterator* iter) {
   DCHECK(!iter->AtEnd());
 

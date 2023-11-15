@@ -1,25 +1,25 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #include "net/instaweb/rewriter/public/common_filter.h"
 
 #include "base/logging.h"
-#include "net/instaweb/http/public/log_record.h"
 #include "net/instaweb/rewriter/public/critical_images_beacon_filter.h"
 #include "net/instaweb/rewriter/public/resource.h"
 #include "net/instaweb/rewriter/public/rewrite_driver.h"
@@ -33,6 +33,7 @@
 #include "pagespeed/kernel/http/http_names.h"
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/opt/logging/enums.pb.h"
+#include "pagespeed/opt/logging/log_record.h"
 
 namespace net_instaweb {
 
@@ -45,15 +46,14 @@ CommonFilter::CommonFilter(RewriteDriver* driver)
     : driver_(driver),
       server_context_(driver->server_context()),
       rewrite_options_(driver->options()),
-      noscript_element_(NULL),
-      end_body_point_(NULL),
-      seen_base_(false) {
-}
+      noscript_element_(nullptr),
+      end_body_point_(nullptr),
+      seen_base_(false) {}
 
 CommonFilter::~CommonFilter() {}
 
 void CommonFilter::InsertNodeAtBodyEnd(HtmlNode* data) {
-  if (end_body_point_ != NULL && driver_->CanAppendChild(end_body_point_)) {
+  if (end_body_point_ != nullptr && driver_->CanAppendChild(end_body_point_)) {
     driver_->AppendChild(end_body_point_, data);
   } else {
     driver_->InsertNodeBeforeCurrent(data);
@@ -62,8 +62,8 @@ void CommonFilter::InsertNodeAtBodyEnd(HtmlNode* data) {
 
 void CommonFilter::StartDocument() {
   // Base URL starts as document URL.
-  noscript_element_ = NULL;
-  end_body_point_ = NULL;
+  noscript_element_ = nullptr;
+  end_body_point_ = nullptr;
   // Reset whether or not we've seen the base tag yet, because we're starting
   // back at the top of the document.
   seen_base_ = false;
@@ -73,21 +73,21 @@ void CommonFilter::StartDocument() {
 
 void CommonFilter::StartElement(HtmlElement* element) {
   if (element->keyword() == HtmlName::kNoscript) {
-    if (noscript_element_ == NULL) {
+    if (noscript_element_ == nullptr) {
       noscript_element_ = element;  // Record top-level <noscript>
     }
   }
   // If this is a base tag with an href attribute, then we've seen the base, and
   // any url references after this point are relative to that base.
   if (element->keyword() == HtmlName::kBase &&
-      element->FindAttribute(HtmlName::kHref) != NULL) {
+      element->FindAttribute(HtmlName::kHref) != nullptr) {
     seen_base_ = true;
   }
 
   // If end_body_point_ was set (if we've already seen a </body> for instance),
   // and we encounter a new open element, clear end_body_point_ as it's no
   // longer the end of the body.
-  end_body_point_ = NULL;
+  end_body_point_ = nullptr;
 
   // Run actual filter's StartElementImpl.
   StartElementImpl(element);
@@ -97,16 +97,16 @@ void CommonFilter::EndElement(HtmlElement* element) {
   switch (element->keyword()) {
     case HtmlName::kNoscript:
       if (element == noscript_element_) {
-        noscript_element_ = NULL;  // We are exiting the top-level <noscript>
+        noscript_element_ = nullptr;  // We are exiting the top-level <noscript>
       }
-      end_body_point_ = NULL;
+      end_body_point_ = nullptr;
       break;
     case HtmlName::kBody:
       // Preferred injection location
       end_body_point_ = element;
       break;
     case HtmlName::kHtml:
-      if ((end_body_point_ == NULL ||
+      if ((end_body_point_ == nullptr ||
            !driver()->CanAppendChild(end_body_point_)) &&
           driver()->CanAppendChild(element)) {
         // Try to inject before </html> if before </body> won't work.
@@ -116,7 +116,7 @@ void CommonFilter::EndElement(HtmlElement* element) {
     default:
       // There were (possibly implicit) close tags after </body> or </html>, so
       // throw that point away.
-      end_body_point_ = NULL;
+      end_body_point_ = nullptr;
       break;
   }
 
@@ -128,8 +128,8 @@ void CommonFilter::Characters(net_instaweb::HtmlCharactersNode* characters) {
   // If we have a character node after the closing body or html tag, then we
   // can't safely insert something depending on being at the end of the document
   // there. This can happen due to a faulty filter, or malformed HTML.
-  if (end_body_point_ != NULL && !OnlyWhitespace(characters->contents())) {
-    end_body_point_ = NULL;
+  if (end_body_point_ != nullptr && !OnlyWhitespace(characters->contents())) {
+    end_body_point_ = nullptr;
   }
 }
 
@@ -138,14 +138,15 @@ void CommonFilter::Characters(net_instaweb::HtmlCharactersNode* characters) {
 // Different browsers deal with such refs differently, but we shouldn't
 // change their behavior.
 bool CommonFilter::BaseUrlIsValid() const {
-  // If there are no href or src attributes before the base, it's
-  // always valid.
-  if (!driver_->refs_before_base()) {
+  // If there are no href or src attributes before the base, or a broken base,
+  // it's valid.
+  if (!driver_->refs_before_base() && !driver_->other_base_problem()) {
     return true;
   }
   // If the filter has already seen the base url, then it's now valid
-  // even if there were urls before it.
-  return seen_base_;
+  // even if there were urls before it --- unless something else was
+  // wrong.
+  return seen_base_ && !driver_->other_base_problem();
 }
 
 void CommonFilter::ResolveUrl(StringPiece input_url, GoogleUrl* out_url) {
@@ -159,6 +160,17 @@ void CommonFilter::ResolveUrl(StringPiece input_url, GoogleUrl* out_url) {
   }
 }
 
+bool CommonFilter::IsRelativeUrlLoadPermittedByCsp(StringPiece url,
+                                                   CspDirective role) {
+  GoogleUrl abs_url;
+  ResolveUrl(url, &abs_url);
+  if (abs_url.IsWebValid()) {
+    return driver()->IsLoadPermittedByCsp(abs_url, role);
+  } else {
+    return false;
+  }
+}
+
 ResourcePtr CommonFilter::CreateInputResource(StringPiece input_url,
                                               RewriteDriver::InputRole role,
                                               bool* is_authorized) {
@@ -168,13 +180,10 @@ ResourcePtr CommonFilter::CreateInputResource(StringPiece input_url,
   ResolveUrl(input_url, &resource_url);
   if (resource_url.IsWebValid()) {
     resource = driver_->CreateInputResource(
-        resource_url,
-        AllowUnauthorizedDomain(),
-        (IntendedForInlining()
-         ? RewriteDriver::kIntendedForInlining
-         : RewriteDriver::kIntendedForGeneral),
-        role,
-        is_authorized);
+        resource_url, AllowUnauthorizedDomain(),
+        (IntendedForInlining() ? RewriteDriver::kIntendedForInlining
+                               : RewriteDriver::kIntendedForGeneral),
+        role, is_authorized);
   }
   return resource;
 }
@@ -182,11 +191,11 @@ ResourcePtr CommonFilter::CreateInputResource(StringPiece input_url,
 ResourcePtr CommonFilter::CreateInputResourceOrInsertDebugComment(
     StringPiece input_url, RewriteDriver::InputRole role,
     HtmlElement* element) {
-  DCHECK(element != NULL);
+  DCHECK(element != nullptr);
   bool is_authorized;
   ResourcePtr input_resource(
       CreateInputResource(input_url, role, &is_authorized));
-  if (input_resource.get() == NULL) {
+  if (input_resource.get() == nullptr) {
     if (!is_authorized) {
       driver()->InsertUnauthorizedDomainDebugComment(input_url, role, element);
     }
@@ -194,9 +203,7 @@ ResourcePtr CommonFilter::CreateInputResourceOrInsertDebugComment(
   return input_resource;
 }
 
-const GoogleUrl& CommonFilter::base_url() const {
-  return driver_->base_url();
-}
+const GoogleUrl& CommonFilter::base_url() const { return driver_->base_url(); }
 
 const GoogleUrl& CommonFilter::decoded_base_url() const {
   return driver_->decoded_base_url();
@@ -215,8 +222,8 @@ bool CommonFilter::ExtractMetaTagDetails(const HtmlElement& element,
   bool result = false;
 
   // HTTP-EQUIV case.
-  if ((equiv = element.FindAttribute(HtmlName::kHttpEquiv)) != NULL &&
-      (value = element.FindAttribute(HtmlName::kContent)) != NULL) {
+  if ((equiv = element.FindAttribute(HtmlName::kHttpEquiv)) != nullptr &&
+      (value = element.FindAttribute(HtmlName::kContent)) != nullptr) {
     StringPiece attribute = equiv->DecodedValueOrNull();
     StringPiece value_str = value->DecodedValueOrNull();
     if (!value_str.empty() && !attribute.empty()) {
@@ -242,13 +249,14 @@ bool CommonFilter::ExtractMetaTagDetails(const HtmlElement& element,
         if (result) {
           // No charset, see if we have a charset attribute to append.
           if (local_charset.empty() && *(content->rbegin()) == ';' &&
-              ((cs_attr = element.FindAttribute(HtmlName::kCharset)) != NULL) &&
-              (cs_attr->DecodedValueOrNull() != NULL)) {
+              ((cs_attr = element.FindAttribute(HtmlName::kCharset)) !=
+               nullptr) &&
+              (cs_attr->DecodedValueOrNull() != nullptr)) {
             StrAppend(content, " charset=", cs_attr->DecodedValueOrNull());
             have_parsed = false;
           }
           // If requested, check to see if we have this value already.
-          if (headers != NULL && headers->HasValue(attribute, *content)) {
+          if (headers != nullptr && headers->HasValue(attribute, *content)) {
             result = false;
           } else if (!have_parsed) {
             result = ParseContentType(*content, mime_type, &local_charset);
@@ -259,9 +267,10 @@ bool CommonFilter::ExtractMetaTagDetails(const HtmlElement& element,
         }
       }
     }
-  // charset case.
-  } else if (((cs_attr = element.FindAttribute(HtmlName::kCharset)) != NULL) &&
-             (cs_attr->DecodedValueOrNull() != NULL)) {
+    // charset case.
+  } else if (((cs_attr = element.FindAttribute(HtmlName::kCharset)) !=
+              nullptr) &&
+             (cs_attr->DecodedValueOrNull() != nullptr)) {
     *mime_type = "";
     *charset = cs_attr->DecodedValueOrNull();
     result = true;
@@ -273,9 +282,9 @@ bool CommonFilter::ExtractMetaTagDetails(const HtmlElement& element,
 bool CommonFilter::CanAddPagespeedOnloadToImage(const HtmlElement& element) {
   const HtmlElement::Attribute* onload_attribute =
       element.FindAttribute(HtmlName::kOnload);
-  return (noscript_element() == NULL &&
-          (onload_attribute == NULL ||
-           (onload_attribute->DecodedValueOrNull() != NULL &&
+  return (noscript_element() == nullptr &&
+          (onload_attribute == nullptr ||
+           (onload_attribute->DecodedValueOrNull() != nullptr &&
             strcmp(onload_attribute->DecodedValueOrNull(),
                    CriticalImagesBeaconFilter::kImageOnloadCode) == 0)));
 }
@@ -301,7 +310,7 @@ void CommonFilter::AddJsToElement(StringPiece js, HtmlElement* script) {
 
   // is pedantic filter only check sufficient for adding type attribute?
   if (!driver_->doctype().IsVersion5() ||
-          driver_->options()->Enabled(RewriteOptions::kPedantic)) {
+      driver_->options()->Enabled(RewriteOptions::kPedantic)) {
     driver_->AddAttribute(script, HtmlName::kType, "text/javascript");
   }
   HtmlCharactersNode* script_content = driver_->NewCharactersNode(script, js);

@@ -1,20 +1,22 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: slamm@google.com (Stephen Lamm),
 //         morlovich@google.com (Maksim Orlovich)
 //
 // This filters helps inline a subset of CSS critical to initial rendering of
@@ -53,26 +55,26 @@ class CriticalSelectorFilter : public CssSummarizerBase {
   static const char kNoscriptStylesClass[];
 
   explicit CriticalSelectorFilter(RewriteDriver* rewrite_driver);
-  virtual ~CriticalSelectorFilter();
+  ~CriticalSelectorFilter() override;
 
-  virtual const char* Name() const { return "CriticalSelectorFilter"; }
-  virtual const char* id() const { return "cl"; }
+  const char* Name() const override { return "CriticalSelectorFilter"; }
+  const char* id() const override { return "cl"; }
 
   // This filter needs access to all critical selectors (even those from
   // unauthorized domains) in order to inline them into HTML.
   // Inlining css from unauthorized domains into HTML is considered
   // safe because it does not cause any new content to be executed compared
   // to the unoptimized page.
-  virtual RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
-      const {
+  RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
+      const override {
     return driver()->options()->HasInlineUnauthorizedResourceType(
-               semantic_type::kStylesheet) ?
-           RewriteDriver::kInlineUnauthorizedResources :
-           RewriteDriver::kInlineOnlyAuthorizedResources;
+               semantic_type::kStylesheet)
+               ? RewriteDriver::kInlineUnauthorizedResources
+               : RewriteDriver::kInlineOnlyAuthorizedResources;
   }
 
   // Selectors are inlined into the html.
-  virtual bool IntendedForInlining() const { return true; }
+  bool IntendedForInlining() const override { return true; }
   ScriptUsage GetScriptUsage() const override { return kWillInjectScripts; }
 
  protected:
@@ -81,35 +83,31 @@ class CriticalSelectorFilter : public CssSummarizerBase {
   // write them out to the page. We also use this to pick up the output
   // of filters before us, like rewrite_css; so we run this even on things
   // that will not contain on-screen critical CSS.
-  void Summarize(Css::Stylesheet* stylesheet,
-                 GoogleString* out) const override;
-  void RenderSummary(int pos,
-                     HtmlElement* element,
+  void Summarize(Css::Stylesheet* stylesheet, GoogleString* out) const override;
+  void RenderSummary(int pos, HtmlElement* element,
                      HtmlCharactersNode* char_node,
                      bool* is_element_deleted) override;
-  void WillNotRenderSummary(int pos,
-                            HtmlElement* element,
+  void WillNotRenderSummary(int pos, HtmlElement* element,
                             HtmlCharactersNode* char_node) override;
 
   // Since our computation depends on the selectors that are relevant to the
   // webpage, we incorporate them into the cache key as well.
-  virtual GoogleString CacheKeySuffix() const;
+  GoogleString CacheKeySuffix() const override;
 
   // Parser callbacks.
-  virtual void StartDocumentImpl();
-  virtual void EndDocument();
-  virtual void RenderDone();
+  void StartDocumentImpl() override;
+  void EndDocument() override;
+  void RenderDone() override;
 
   // Filter control API.
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void DetermineEnabled(GoogleString* disabled_reason) override;
 
  private:
   class CssElement;
   class CssStyleElement;
   typedef std::vector<CssElement*> CssElementVector;
 
-  void RememberFullCss(int pos,
-                       HtmlElement* element,
+  void RememberFullCss(int pos, HtmlElement* element,
                        HtmlCharactersNode* char_node);
 
   // Selectors that are critical for this page.

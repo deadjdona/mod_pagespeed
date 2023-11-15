@@ -1,20 +1,22 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //
 // Contains DelayCache, which lets one inject progammer-controlled
 // delays before lookup callback invocation.
@@ -24,6 +26,7 @@
 #include "pagespeed/kernel/cache/delay_cache.h"
 
 #include <utility>  // for pair.
+
 #include "base/logging.h"
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/function.h"
@@ -41,8 +44,7 @@ class DelayCache::DelayCallback : public CacheInterface::Callback {
       : delay_cache_(delay_cache),
         orig_callback_(orig_callback),
         key_(key),
-        state_(kNotFound) {
-  }
+        state_(kNotFound) {}
 
   ~DelayCallback() override {}
 
@@ -86,9 +88,7 @@ class DelayCache::DelayCallback : public CacheInterface::Callback {
 };
 
 DelayCache::DelayCache(CacheInterface* cache, ThreadSystem* thread_system)
-    : cache_(cache),
-      mutex_(thread_system->NewMutex()) {
-}
+    : cache_(cache), mutex_(thread_system->NewMutex()) {}
 
 DelayCache::~DelayCache() {
   CHECK(delay_requests_.empty());
@@ -106,12 +106,12 @@ void DelayCache::LookupComplete(DelayCallback* callback) {
     if (p != delay_requests_.end()) {
       CHECK(delay_map_.find(callback->key()) == delay_map_.end());
       delay_map_[callback->key()] = callback;
-      callback = NULL;  // Don't run it; we are delaying it.
+      callback = nullptr;  // Don't run it; we are delaying it.
     }
   }
 
   // Release lock first; then run callback.
-  if (callback != NULL) {
+  if (callback != nullptr) {
     callback->Run();
   }
 }
@@ -123,7 +123,7 @@ void DelayCache::DelayKey(const GoogleString& key) {
 
 void DelayCache::ReleaseKeyInSequence(const GoogleString& key,
                                       QueuedWorkerPool::Sequence* sequence) {
-  DelayCallback* callback = NULL;
+  DelayCallback* callback = nullptr;
   {
     ScopedMutex lock(mutex_.get());
     int erased = delay_requests_.erase(key);
@@ -139,8 +139,8 @@ void DelayCache::ReleaseKeyInSequence(const GoogleString& key,
   }
 
   // Release lock first; then run callback or add it to the sequence.
-  if (callback != NULL) {
-    if (sequence != NULL) {
+  if (callback != nullptr) {
+    if (sequence != nullptr) {
       sequence->Add(MakeFunction(callback, &DelayCallback::Run));
     } else {
       callback->Run();
@@ -155,8 +155,8 @@ void DelayCache::Get(const GoogleString& key, Callback* callback) {
 void DelayCache::MultiGet(MultiGetRequest* request) {
   for (int i = 0, n = request->size(); i < n; ++i) {
     KeyCallback* key_callback = &(*request)[i];
-    DelayCallback* cb = new DelayCallback(key_callback->key, this,
-                                          key_callback->callback);
+    DelayCallback* cb =
+        new DelayCallback(key_callback->key, this, key_callback->callback);
     key_callback->callback = cb;
   }
   cache_->MultiGet(request);
@@ -166,8 +166,6 @@ void DelayCache::Put(const GoogleString& key, const SharedString& value) {
   cache_->Put(key, value);
 }
 
-void DelayCache::Delete(const GoogleString& key) {
-  cache_->Delete(key);
-}
+void DelayCache::Delete(const GoogleString& key) { cache_->Delete(key); }
 
 }  // namespace net_instaweb

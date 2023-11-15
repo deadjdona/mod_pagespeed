@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/simple_text_filter.h"
 
@@ -30,26 +31,19 @@
 
 namespace net_instaweb {
 
-SimpleTextFilter::Rewriter::~Rewriter() {
-}
+SimpleTextFilter::Rewriter::~Rewriter() {}
 
 SimpleTextFilter::SimpleTextFilter(Rewriter* rewriter, RewriteDriver* driver)
-    : RewriteFilter(driver),
-      rewriter_(rewriter) {
-}
+    : RewriteFilter(driver), rewriter_(rewriter) {}
 
-SimpleTextFilter::~SimpleTextFilter() {
-}
+SimpleTextFilter::~SimpleTextFilter() {}
 
 SimpleTextFilter::Context::Context(const RewriterPtr& rewriter,
                                    RewriteDriver* driver,
                                    RewriteContext* parent)
-    : SingleRewriteContext(driver, parent, NULL),
-      rewriter_(rewriter) {
-}
+    : SingleRewriteContext(driver, parent, nullptr), rewriter_(rewriter) {}
 
-SimpleTextFilter::Context::~Context() {
-}
+SimpleTextFilter::Context::~Context() {}
 
 void SimpleTextFilter::Context::RewriteSingle(const ResourcePtr& input,
                                               const OutputResourcePtr& output) {
@@ -59,12 +53,11 @@ void SimpleTextFilter::Context::RewriteSingle(const ResourcePtr& input,
   if (rewriter_->RewriteText(input->url(), input->ExtractUncompressedContents(),
                              &rewritten, server_context)) {
     const ContentType* output_type = input->type();
-    if (output_type == NULL) {
+    if (output_type == nullptr) {
       output_type = &kContentTypeText;
     }
-    if (Driver()->Write(
-            ResourceVector(1, input), rewritten, output_type, input->charset(),
-            output.get())) {
+    if (Driver()->Write(ResourceVector(1, input), rewritten, output_type,
+                        input->charset(), output.get())) {
       result = kRewriteOk;
     }
   }
@@ -73,29 +66,29 @@ void SimpleTextFilter::Context::RewriteSingle(const ResourcePtr& input,
 
 void SimpleTextFilter::StartElementImpl(HtmlElement* element) {
   HtmlElement::Attribute* attr = rewriter_->FindResourceAttribute(element);
-  if (attr == NULL) {
+  if (attr == nullptr) {
     return;
   }
   ResourcePtr resource(CreateInputResourceOrInsertDebugComment(
       attr->DecodedValueOrNull(), RewriteDriver::InputRole::kUnknown, element));
-  if (resource.get() == NULL) {
+  if (resource.get() == nullptr) {
     return;
   }
 
   ResourceSlotPtr slot(driver()->GetSlot(resource, element, attr));
   // This 'new' is paired with a delete in RewriteContext::FinishFetch()
-  Context* context = new Context(rewriter_, driver(), NULL);
+  Context* context = new Context(rewriter_, driver(), nullptr);
   context->AddSlot(slot);
   driver()->InitiateRewrite(context);
 }
 
 RewriteContext* SimpleTextFilter::MakeRewriteContext() {
-  return new Context(rewriter_, driver(), NULL);
+  return new Context(rewriter_, driver(), nullptr);
 }
 
 RewriteContext* SimpleTextFilter::MakeNestedRewriteContext(
     RewriteContext* parent, const ResourceSlotPtr& slot) {
-  RewriteContext* context = new Context(rewriter_, NULL, parent);
+  RewriteContext* context = new Context(rewriter_, nullptr, parent);
   context->AddSlot(slot);
   return context;
 }

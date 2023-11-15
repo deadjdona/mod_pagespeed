@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-# Copyright 2016 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,4 +35,7 @@ start_test rewrite_images can rewrite srcset itself
 URL=$TEST_ROOT/image_rewriting/srcset.html?PageSpeedFilters=+rewrite_images,+debug
 fetch_until -save $URL 'grep -c xPuzzle.*1x.*xCuppa.*2x' 1
 
+start_test rewrite_images_datasrcset can rewrite data-srcset itself
+URL=$TEST_ROOT/image_rewriting/data-srcset.html?PageSpeedFilters=+rewrite_images,+debug
+fetch_until -save $URL 'grep -c srcset.*xPuzzle.*1x.*xCuppa.*2x' 2
 

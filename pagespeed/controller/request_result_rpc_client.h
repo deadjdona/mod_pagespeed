@@ -1,18 +1,21 @@
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_CONTROLLER_REQUEST_RESULT_RPC_CLIENT_H_
 #define PAGESPEED_CONTROLLER_REQUEST_RESULT_RPC_CLIENT_H_
@@ -24,8 +27,8 @@
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/function.h"
 #include "pagespeed/kernel/base/message_handler.h"
-#include "pagespeed/kernel/base/thread_system.h"
 #include "pagespeed/kernel/base/thread_annotations.h"
+#include "pagespeed/kernel/base/thread_system.h"
 #include "pagespeed/kernel/util/grpc.h"
 
 // RequestResultRpcClient manages the client portion of a gRPC connection. It is
@@ -122,9 +125,9 @@ class RequestResultRpcClient {
   typedef ::grpc::ClientAsyncReaderWriterInterface<RequestT, ResponseT>
       ReaderWriter;
 
-  RequestResultRpcClient(
-      ::grpc::CompletionQueue* queue, ThreadSystem* thread_system,
-      MessageHandler* handler, CallbackT* callback)
+  RequestResultRpcClient(::grpc::CompletionQueue* queue,
+                         ThreadSystem* thread_system, MessageHandler* handler,
+                         CallbackT* callback)
       : mutex_(thread_system->NewMutex()),
         queue_(queue),
         callback_(callback),
@@ -140,7 +143,7 @@ class RequestResultRpcClient {
   }
 
   // Actually start the RPC by having the client call RequestFoo on the stub.
-  void Start(grpc::CentralControllerRpcService::StubInterface* stub) {
+  void Start(CentralControllerRpcService::StubInterface* stub) {
     ScopedMutex lock(mutex_.get());
     rpc_->SetReaderWriter(
         StartRpc(stub, rpc_->context(), queue_,
@@ -170,7 +173,7 @@ class RequestResultRpcClient {
   // Delegate for the client to call AsyncFoo for the appropriate RPC on the
   // stub.
   virtual std::unique_ptr<ReaderWriter> StartRpc(
-      grpc::CentralControllerRpcService::StubInterface* stub,
+      CentralControllerRpcService::StubInterface* stub,
       ::grpc::ClientContext* context, ::grpc::CompletionQueue* queue,
       void* tag) = 0;
 

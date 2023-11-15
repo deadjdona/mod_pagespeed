@@ -1,25 +1,26 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_HTTP_VALUE_H_
 #define NET_INSTAWEB_HTTP_PUBLIC_HTTP_VALUE_H_
 
-#include <cstddef>                     // for size_t
+#include <cstddef>  // for size_t
 
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/shared_string.h"
@@ -60,8 +61,8 @@ class HTTPValue : public Writer {
   // multiple times to append more data, and can be called before
   // or after SetHeaders.  However, SetHeaders cannot be interleaved
   // in between calls to Write.
-  virtual bool Write(const StringPiece& str, MessageHandler* handler);
-  virtual bool Flush(MessageHandler* handler);
+  bool Write(const StringPiece& str, MessageHandler* handler) override;
+  bool Flush(MessageHandler* handler) override;
 
   // Retrieves the headers, returning false if empty.
   bool ExtractHeaders(ResponseHeaders* headers, MessageHandler* handler) const;

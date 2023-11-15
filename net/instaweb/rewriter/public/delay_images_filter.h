@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: pulkitg@google.com (Pulkit Goyal)
 //
 // Contains implementation of DelayImagesFilter, which delays all the high
 // quality images whose low quality inlined data url are available within their
@@ -91,17 +93,17 @@ class DelayImagesFilter : public CommonFilter {
   static const char kImageOnloadJsSnippet[];
 
   explicit DelayImagesFilter(RewriteDriver* driver);
-  virtual ~DelayImagesFilter();
+  ~DelayImagesFilter() override;
 
-  virtual void StartDocumentImpl();
-  virtual void StartElementImpl(HtmlElement* element) { }
-  virtual void EndElementImpl(HtmlElement* element);
+  void StartDocumentImpl() override;
+  void StartElementImpl(HtmlElement* element) override {}
+  void EndElementImpl(HtmlElement* element) override;
 
-  virtual void EndDocument();
+  void EndDocument() override;
 
-  virtual const char* Name() const { return "DelayImages"; }
+  const char* Name() const override { return "DelayImages"; }
 
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void DetermineEnabled(GoogleString* disabled_reason) override;
 
   static void InitStats(Statistics* statistics);
   static void Terminate();

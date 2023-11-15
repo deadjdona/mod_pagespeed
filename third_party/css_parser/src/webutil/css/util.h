@@ -1,22 +1,21 @@
-/**
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Copyright 2007 Google Inc. All Rights Reserved.
-// Author: yian@google.com (Yian Huang)
-// Author: dpeng@google.com (Daniel Peng)
 
 #ifndef WEBUTIL_CSS_UTIL_H__
 #define WEBUTIL_CSS_UTIL_H__
@@ -24,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#include "strings/stringpiece.h"
-#include "webutil/css/string.h"
+#include "third_party/css_parser/src/strings/stringpiece.h"
+#include "third_party/css_parser/src/webutil/css/string.h"
 
 class HtmlColor;
 class UnicodeText;
@@ -37,7 +36,7 @@ class Value;
 
 namespace Util {
 
-enum COLOR_ATTR {ORIGINAL, TRANSPARENT, UNKNOWN, INHERIT};
+enum COLOR_ATTR { ORIGINAL, TRANSPARENT, UNKNOWN, INHERIT };
 
 // Parses CSS color value (may be a string, identifier or a color) into
 // HtmlColor. returns def if the color is invalid. set attr to one of the
@@ -53,9 +52,9 @@ HtmlColor GetCssColor(const Css::Value* val, const HtmlColor& def,
 // a number. It can also be invalid if can_negative is set and the value is
 // negative, can_unitless works similarly. Returns if parsing succeeds, and
 // if so, size stores the result.
-bool GetCssLength(const Css::Value* val, double parent_size,
-                  double font_size, double unit, bool can_negative,
-                  bool can_unitless, double* size);
+bool GetCssLength(const Css::Value* val, double parent_size, double font_size,
+                  double unit, bool can_negative, bool can_unitless,
+                  double* size);
 
 // Updates color with system color specified in colorstr. The change is only
 // done only when the conversion succeeds, indicated by the return value.
@@ -69,7 +68,7 @@ bool GetSystemColor(const string& colorstr, HtmlColor* color);
 // Whether a media string (comma separated list of media) is compatible with
 // screen-oriented applications. It is valid if no media is specified or some
 // medium has the name "screen" or "all".
-bool MediaAppliesToScreen(const StringPiece& media);
+bool MediaAppliesToScreen(const CssStringPiece& media);
 
 // Whether a media list is compatible with screen-oriented applications. It
 // is valid if no media is specified or some medium has the name "screen" or

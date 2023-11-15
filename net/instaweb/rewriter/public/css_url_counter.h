@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CSS_URL_COUNTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CSS_URL_COUNTER_H_
@@ -36,7 +37,7 @@ class CssUrlCounter : public CssTagScanner::Transformer {
   // base_url and handler must live longer than CssUrlCounter.
   CssUrlCounter(const GoogleUrl* base_url, MessageHandler* handler)
       : base_url_(base_url), handler_(handler) {}
-  virtual ~CssUrlCounter();
+  ~CssUrlCounter() override;
 
   // Record and count URLs in in_text. Does not reset url_counts_, so if you
   // call this multiple times it will accumulate url_counts_ over all inputs.
@@ -48,7 +49,7 @@ class CssUrlCounter : public CssTagScanner::Transformer {
 
  private:
   // CssTagScanner::Transform interface. Called indirectly by Count().
-  virtual TransformStatus Transform(GoogleString* str);
+  TransformStatus Transform(GoogleString* str) override;
 
   // Counts for how many times each URL was found in the CSS file.
   StringIntMap url_counts_;

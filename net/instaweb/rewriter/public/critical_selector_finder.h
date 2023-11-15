@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: morlovich@google.com (Maksim Orlovich)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CRITICAL_SELECTOR_FINDER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CRITICAL_SELECTOR_FINDER_H_
@@ -75,8 +76,7 @@ class CriticalSelectorFinder {
   // cohort.  If results are obtained from a trusted source
   // (ShouldReplacePriorResult() must return true) then nonce may be NULL.
   virtual void WriteCriticalSelectorsToPropertyCache(
-      const StringSet& selector_set, StringPiece nonce,
-      RewriteDriver* driver);
+      const StringSet& selector_set, StringPiece nonce, RewriteDriver* driver);
 
   // As above, but suitable for use in a beacon context where no RewriteDriver
   // is available.
@@ -91,8 +91,8 @@ class CriticalSelectorFinder {
   // selector data.  Otherwise re-beaconing is based on a time and request
   // interval.  Returns the BeaconMetadata; result.status indicates whether
   // beaconing should occur.
-  BeaconMetadata PrepareForBeaconInsertion(
-      const StringSet& selector_set, RewriteDriver* driver);
+  BeaconMetadata PrepareForBeaconInsertion(const StringSet& selector_set,
+                                           RewriteDriver* driver);
 
   // Gets the SupportInterval for a new beacon result.
   virtual int SupportInterval() const = 0;
@@ -138,7 +138,7 @@ class BeaconCriticalSelectorFinder : public CriticalSelectorFinder {
   static const int kDefaultSupportInterval = 10;
 
   // Gets the SupportInterval for a new beacon result (see comment at top).
-  virtual int SupportInterval() const { return kDefaultSupportInterval; }
+  int SupportInterval() const override { return kDefaultSupportInterval; }
 };
 
 }  // namespace net_instaweb

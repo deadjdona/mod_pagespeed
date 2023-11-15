@@ -1,20 +1,21 @@
 /*
- * Copyright 2014 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CSS_ABSOLUTIFY_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CSS_ABSOLUTIFY_H_
@@ -49,12 +50,10 @@ class CssAbsolutify {
   // TODO(sligocki): Remove handle_ bools, and always handle both. Also,
   // absolutify imports in this function.
   // Returns true if any URLs were absolutified, false if not.
-  static bool AbsolutifyUrls(Css::Stylesheet* stylesheet,
-                             const GoogleUrl& base,
+  static bool AbsolutifyUrls(Css::Stylesheet* stylesheet, const GoogleUrl& base,
                              bool handle_parseable_ruleset_sections,
                              bool handle_unparseable_sections,
-                             RewriteDriver* driver,
-                             MessageHandler* handler);
+                             RewriteDriver* driver, MessageHandler* handler);
 
  private:
   static bool AbsolutifyDeclarations(Css::Declarations* decls,

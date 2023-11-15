@@ -1,20 +1,22 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: sligocki@google.com (Shawn Ligocki)
 //         jmarantz@google.com (Joshua Marantz)
 //
 // Resources are created by a RewriteDriver.  Input resources are
@@ -58,10 +60,7 @@ class Resource : public RefCounted<Resource> {
  public:
   class AsyncCallback;
 
-  enum HashHint {
-    kOmitInputHash,
-    kIncludeInputHash
-  };
+  enum HashHint { kOmitInputHash, kIncludeInputHash };
 
   // This enumerates possible follow-up behaviors when a requested resource was
   // uncacheable.
@@ -69,7 +68,6 @@ class Resource : public RefCounted<Resource> {
     kLoadEvenIfNotCacheable,
     kReportFailureIfNotCacheable,
   };
-
 
   Resource(const RewriteDriver* driver, const ContentType* type);
 
@@ -135,8 +133,8 @@ class Resource : public RefCounted<Resource> {
 
   // Adds a new InputInfo object representing this resource to CachedResult,
   // assigning the index supplied.
-  void AddInputInfoToPartition(HashHint suggest_include_content_hash,
-                               int index, CachedResult* partition);
+  void AddInputInfoToPartition(HashHint suggest_include_content_hash, int index,
+                               CachedResult* partition);
 
   // Set CachedResult's input info used for expiration validation.
   // If include_content_hash is kIncludeInputHash, and it makes sense for
@@ -152,8 +150,7 @@ class Resource : public RefCounted<Resource> {
                                         InputInfo* input);
 
   void FillInPartitionInputInfoFromResponseHeaders(
-      const ResponseHeaders& headers,
-      InputInfo* input);
+      const ResponseHeaders& headers, InputInfo* input);
 
   // Returns 0 if resource is not cacheable.
   // TODO(sligocki): Look through callsites and make sure this is being
@@ -162,8 +159,10 @@ class Resource : public RefCounted<Resource> {
 
   // Returns the uncompressed contents stored in value_. Although this is marked
   // as const, it mutates the internal state of this object and is not thread
-  // safe.
+  // safe. If you need headers at the same time, make sure to use
+  // UncompressedHeaders() at the same time.
   StringPiece ExtractUncompressedContents() const;
+  const ResponseHeaders* UncompressedHeaders() const;
 
   // Returns the size of the the ExtractUncompressedContents(). Like
   // ExtractUncompressedContents(), this method can mutate the internal state of
@@ -185,9 +184,7 @@ class Resource : public RefCounted<Resource> {
   const ResponseHeaders* response_headers() const { return &response_headers_; }
   const ContentType* type() const { return type_; }
   virtual void SetType(const ContentType* type);
-  bool IsContentsEmpty() const {
-    return raw_contents().empty();
-  }
+  bool IsContentsEmpty() const { return raw_contents().empty(); }
 
   // Note: this is empty if the header is not specified.
   StringPiece charset() const { return charset_; }
@@ -203,9 +200,7 @@ class Resource : public RefCounted<Resource> {
 
   // Gets the cache key for resource. This may be different from URL
   // if the resource is e.g. UA-dependent.
-  virtual GoogleString cache_key() const {
-    return url();
-  }
+  virtual GoogleString cache_key() const { return url(); }
 
   // Computes the content-type (and charset) based on response_headers and
   // extension, and sets it via SetType.
@@ -235,16 +230,14 @@ class Resource : public RefCounted<Resource> {
     explicit FreshenCallback(const ResourcePtr& resource)
         : AsyncCallback(resource) {}
 
-    virtual ~FreshenCallback();
+    ~FreshenCallback() override;
     // Returns NULL by default. Sublasses should override this if they want this
     // to be updated based on the response fetched while freshening.
     virtual InputInfo* input_info() { return NULL; }
 
     // This is called with resource_ok = true only if the hash of the fetched
     // response is the same as the hash in input_info()->input_content_hash().
-    virtual void Done(bool lock_failure, bool resource_ok) {
-      delete this;
-    }
+    void Done(bool lock_failure, bool resource_ok) override { delete this; }
 
    private:
     DISALLOW_COPY_AND_ASSIGN(FreshenCallback);
@@ -268,9 +261,7 @@ class Resource : public RefCounted<Resource> {
   void set_is_background_fetch(bool x) { is_background_fetch_ = x; }
   bool is_background_fetch() const { return is_background_fetch_; }
 
-  FetchResponseStatus fetch_response_status() {
-    return fetch_response_status_;
-  }
+  FetchResponseStatus fetch_response_status() { return fetch_response_status_; }
 
   void set_fetch_response_status(FetchResponseStatus x) {
     fetch_response_status_ = x;
@@ -286,7 +277,7 @@ class Resource : public RefCounted<Resource> {
   REFCOUNT_FRIEND_DECLARATION(Resource);
   friend class ServerContext;
   friend class ReadAsyncHttpCacheCallback;  // uses LoadAndCallback
-  friend class RewriteDriver;  // for ReadIfCachedWithStatus
+  friend class RewriteDriver;               // for ReadIfCachedWithStatus
   friend class UrlReadAsyncFetchCallback;
 
   // Load the resource asynchronously, storing ResponseHeaders and
@@ -330,6 +321,9 @@ class Resource : public RefCounted<Resource> {
   Resource();
   friend class DummyResource;
 
+  // Returns true if the value was compressed.
+  bool EnsureExtractedIfNeeded() const;
+
   // The status of the fetched response.
   FetchResponseStatus fetch_response_status_;
 
@@ -344,8 +338,13 @@ class Resource : public RefCounted<Resource> {
   bool disable_rewrite_on_no_transform_;
   bool is_authorized_domain_;
   ResponseHeaders::VaryOption respect_vary_;
+  mutable enum ExtractState {
+    kExtractNotComputed,
+    kExtractUseBase,
+    kExtractUseExtracted
+  } extracted_state_;
   mutable GoogleString extracted_contents_;
-  mutable bool extracted_;
+  mutable std::unique_ptr<ResponseHeaders> extracted_headers_;
 
   DISALLOW_COPY_AND_ASSIGN(Resource);
 };

@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-# Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +17,7 @@
 start_test CSS minify with calc function and value 0.
 
 URL="$TEST_ROOT/css_minify_calc_function_value_zero.html?PageSpeedFilters=+inline_css"
-RESPONSE_OUT=$(http_proxy=$SECONDARY_HOSTNAME $WGET_DUMP $URL)
-
-# checking for minified css with unit retained for 0 value 
-MATCHES=$(echo "$RESPONSE_OUT" | fgrep -c "width:calc(50ex - 0px)")
-check [ $MATCHES -eq 1 ]
+function count_inline_calc() {
+  fgrep -c "width:calc(50ex - 0px)"
+}
+http_proxy=$SECONDARY_HOSTNAME fetch_until "$URL" count_inline_calc 1

@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //         sligocki@google.com (Shawn Ligocki)
 //
 // AsyncFetch represents the context of a single fetch.
@@ -30,7 +32,6 @@
 #include "pagespeed/kernel/base/writer.h"
 #include "pagespeed/kernel/http/request_headers.h"
 #include "pagespeed/kernel/http/response_headers.h"
-
 
 namespace net_instaweb {
 
@@ -57,7 +58,7 @@ class AsyncFetch : public Writer {
   AsyncFetch();
   explicit AsyncFetch(const RequestContextPtr& request_ctx);
 
-  virtual ~AsyncFetch();
+  ~AsyncFetch() override;
 
   // Called when ResponseHeaders have been set, but before writing contents.
   // Contract: Must be called (at most once) before Write, Flush or Done.
@@ -73,8 +74,8 @@ class AsyncFetch : public Writer {
 
   // Data available.  This interface is intended for callers.  Implementors
   // must override HandlerWrite and HandleFlush.
-  virtual bool Write(const StringPiece& content, MessageHandler* handler);
-  virtual bool Flush(MessageHandler* handler);
+  bool Write(const StringPiece& content, MessageHandler* handler) override;
+  bool Flush(MessageHandler* handler) override;
 
   // Is the cache entry corresponding to headers valid? Default is that it is
   // valid. Sub-classes can provide specific implementations, e.g., based on
@@ -201,16 +202,16 @@ class StringAsyncFetch : public AsyncFetch {
     Init();
   }
 
-  virtual ~StringAsyncFetch();
+  ~StringAsyncFetch() override;
 
-  virtual bool HandleWrite(const StringPiece& content,
-                           MessageHandler* handler) {
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override {
     content.AppendToString(buffer_pointer_);
     return true;
   }
-  virtual bool HandleFlush(MessageHandler* handler) { return true; }
-  virtual void HandleHeadersComplete() {}
-  virtual void HandleDone(bool success) {
+  bool HandleFlush(MessageHandler* handler) override { return true; }
+  void HandleHeadersComplete() override {}
+  void HandleDone(bool success) override {
     success_ = success;
     done_ = true;
   }
@@ -219,7 +220,7 @@ class StringAsyncFetch : public AsyncFetch {
   bool done() const { return done_; }
   const GoogleString& buffer() const { return *buffer_pointer_; }
 
-  virtual void Reset() {
+  void Reset() override {
     done_ = false;
     success_ = false;
     buffer_pointer_->clear();
@@ -256,13 +257,12 @@ class AsyncFetchUsingWriter : public AsyncFetch {
  public:
   AsyncFetchUsingWriter(const RequestContextPtr& request_context,
                         Writer* writer)
-     : AsyncFetch(request_context),
-       writer_(writer) {}
-  virtual ~AsyncFetchUsingWriter();
+      : AsyncFetch(request_context), writer_(writer) {}
+  ~AsyncFetchUsingWriter() override;
 
  protected:
-  virtual bool HandleWrite(const StringPiece& sp, MessageHandler* handler);
-  virtual bool HandleFlush(MessageHandler* handler);
+  bool HandleWrite(const StringPiece& sp, MessageHandler* handler) override;
+  bool HandleFlush(MessageHandler* handler) override;
 
  private:
   Writer* writer_;
@@ -278,33 +278,31 @@ class AsyncFetchUsingWriter : public AsyncFetch {
 class SharedAsyncFetch : public AsyncFetch {
  public:
   explicit SharedAsyncFetch(AsyncFetch* base_fetch);
-  virtual ~SharedAsyncFetch();
+  ~SharedAsyncFetch() override;
 
-  virtual const RequestContextPtr& request_context() {
+  const RequestContextPtr& request_context() override {
     return base_fetch_->request_context();
   }
 
  protected:
-  virtual void HandleDone(bool success) {
-    base_fetch_->Done(success);
-  }
+  void HandleDone(bool success) override { base_fetch_->Done(success); }
 
-  virtual bool HandleWrite(const StringPiece& content,
-                           MessageHandler* handler) {
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override {
     return base_fetch_->Write(content, handler);
   }
 
-  virtual bool HandleFlush(MessageHandler* handler) {
+  bool HandleFlush(MessageHandler* handler) override {
     return base_fetch_->Flush(handler);
   }
 
-  virtual void HandleHeadersComplete();
+  void HandleHeadersComplete() override;
 
-  virtual bool IsCachedResultValid(const ResponseHeaders& headers) {
+  bool IsCachedResultValid(const ResponseHeaders& headers) override {
     return base_fetch_->IsCachedResultValid(headers);
   }
 
-  virtual bool IsBackgroundFetch() const {
+  bool IsBackgroundFetch() const override {
     return base_fetch_->IsBackgroundFetch();
   }
 
@@ -328,7 +326,7 @@ class FallbackSharedAsyncFetch : public SharedAsyncFetch {
 
   FallbackSharedAsyncFetch(AsyncFetch* base_fetch, HTTPValue* fallback,
                            MessageHandler* handler);
-  virtual ~FallbackSharedAsyncFetch();
+  ~FallbackSharedAsyncFetch() override;
 
   void set_fallback_responses_served(Variable* x) {
     fallback_responses_served_ = x;
@@ -337,10 +335,11 @@ class FallbackSharedAsyncFetch : public SharedAsyncFetch {
   bool serving_fallback() const { return serving_fallback_; }
 
  protected:
-  virtual void HandleDone(bool success);
-  virtual bool HandleWrite(const StringPiece& content, MessageHandler* handler);
-  virtual bool HandleFlush(MessageHandler* handler);
-  virtual void HandleHeadersComplete();
+  void HandleDone(bool success) override;
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override;
+  bool HandleFlush(MessageHandler* handler) override;
+  void HandleHeadersComplete() override;
 
  private:
   // Note that this is only used while serving the fallback response.
@@ -365,17 +364,18 @@ class ConditionalSharedAsyncFetch : public SharedAsyncFetch {
  public:
   ConditionalSharedAsyncFetch(AsyncFetch* base_fetch, HTTPValue* cached_value,
                               MessageHandler* handler);
-  virtual ~ConditionalSharedAsyncFetch();
+  ~ConditionalSharedAsyncFetch() override;
 
   void set_num_conditional_refreshes(Variable* x) {
     num_conditional_refreshes_ = x;
   }
 
  protected:
-  virtual void HandleDone(bool success);
-  virtual bool HandleWrite(const StringPiece& content, MessageHandler* handler);
-  virtual bool HandleFlush(MessageHandler* handler);
-  virtual void HandleHeadersComplete();
+  void HandleDone(bool success) override;
+  bool HandleWrite(const StringPiece& content,
+                   MessageHandler* handler) override;
+  bool HandleFlush(MessageHandler* handler) override;
+  void HandleHeadersComplete() override;
 
  private:
   // Note that this is only used while serving the cached response.

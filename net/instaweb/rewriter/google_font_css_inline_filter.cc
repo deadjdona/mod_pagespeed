@@ -1,20 +1,22 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: morlovich@google.com (Maksim Orlovich)
 //
 // Filter that inlines small loader CSS files made by Google Font Service.
 
@@ -34,13 +36,11 @@ GoogleFontCssInlineFilter::GoogleFontCssInlineFilter(RewriteDriver* driver)
   set_id(RewriteOptions::kGoogleFontCssInlineId);
   set_size_threshold_bytes(
       driver->options()->google_font_css_inline_max_bytes());
-  driver->AddResourceUrlClaimant(
-      NewPermanentCallback(
-          this, &GoogleFontCssInlineFilter::CheckIfFontServiceUrl));
+  driver->AddResourceUrlClaimant(NewPermanentCallback(
+      this, &GoogleFontCssInlineFilter::CheckIfFontServiceUrl));
 }
 
-GoogleFontCssInlineFilter::~GoogleFontCssInlineFilter() {
-}
+GoogleFontCssInlineFilter::~GoogleFontCssInlineFilter() {}
 
 void GoogleFontCssInlineFilter::InitStats(Statistics* statistics) {
   GoogleFontServiceInputResource::InitStats(statistics);
@@ -52,7 +52,7 @@ ResourcePtr GoogleFontCssInlineFilter::CreateResource(const char* url,
   GoogleUrl abs_url;
   ResolveUrl(url, &abs_url);
   ResourcePtr resource(GoogleFontServiceInputResource::Make(abs_url, driver()));
-  if (resource.get() != NULL) {
+  if (resource.get() != nullptr) {
     // Unfortunately some options prevent us from doing anything, since they
     // can make the HTML cached in a way unaware of font UA dependencies.
     const RewriteOptions* options = driver()->options();
@@ -71,9 +71,9 @@ ResourcePtr GoogleFontCssInlineFilter::CreateResource(const char* url,
   return resource;
 }
 
-void GoogleFontCssInlineFilter::ResetAndExplainReason(
-    const char* reason, ResourcePtr* resource) {
-  resource->reset(NULL);
+void GoogleFontCssInlineFilter::ResetAndExplainReason(const char* reason,
+                                                      ResourcePtr* resource) {
+  resource->reset(nullptr);
   if (DebugMode()) {
     // Note that since we only call this after a success of
     // GoogleFontServiceInputResource::Make, this will only be adding comments
@@ -82,8 +82,8 @@ void GoogleFontCssInlineFilter::ResetAndExplainReason(
   }
 }
 
-void GoogleFontCssInlineFilter::CheckIfFontServiceUrl(
-    const GoogleUrl& url, bool* result) {
+void GoogleFontCssInlineFilter::CheckIfFontServiceUrl(const GoogleUrl& url,
+                                                      bool* result) {
   *result = GoogleFontServiceInputResource::IsFontServiceUrl(url);
 }
 

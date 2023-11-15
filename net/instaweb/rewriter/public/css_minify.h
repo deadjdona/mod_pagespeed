@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CSS_MINIFY_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CSS_MINIFY_H_
@@ -61,14 +62,12 @@ class CssMinify {
   bool ParseStylesheet(StringPiece stylesheet_text);
 
   // Writes minified Stylesheet from already-parsed stylesheet object.
-  static bool Stylesheet(const Css::Stylesheet& stylesheet,
-                         Writer* writer,
+  static bool Stylesheet(const Css::Stylesheet& stylesheet, Writer* writer,
                          MessageHandler* handler);
 
   // Writes minified Declarations (style attribute contents).
   static bool Declarations(const Css::Declarations& declarations,
-                           Writer* writer,
-                           MessageHandler* handler);
+                           Writer* writer, MessageHandler* handler);
 
   // Establishes a string-vector to collect all parsed URLs.
   void set_url_collector(StringVector* urls) { url_collector_ = urls; }
@@ -81,9 +80,9 @@ class CssMinify {
   void Write(const StringPiece& str);
   void WriteURL(const UnicodeText& url);
 
-  template<typename Container>
+  template <typename Container>
   void JoinMinify(const Container& container, const StringPiece& sep);
-  template<typename Iterator>
+  template <typename Iterator>
   void JoinMinifyIter(const Iterator& begin, const Iterator& end,
                       const StringPiece& sep);
 

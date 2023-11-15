@@ -1,18 +1,21 @@
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_CONTROLLER_POPULARITY_CONTEST_SCHEDULE_REWRITE_CONTROLLER_H_
 #define PAGESPEED_CONTROLLER_POPULARITY_CONTEST_SCHEDULE_REWRITE_CONTROLLER_H_
@@ -25,12 +28,12 @@
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/function.h"
+#include "pagespeed/kernel/base/scoped_ptr.h"
 #include "pagespeed/kernel/base/statistics.h"
 #include "pagespeed/kernel/base/string.h"
-#include "pagespeed/kernel/base/timer.h"
-#include "pagespeed/kernel/base/scoped_ptr.h"
 #include "pagespeed/kernel/base/thread_annotations.h"
 #include "pagespeed/kernel/base/thread_system.h"
+#include "pagespeed/kernel/base/timer.h"
 
 // Implementation of ScheduleRewriteController that uses priority queue to
 // process rewrites in the order of most requested. Gurantees that at most one
@@ -96,7 +99,7 @@ class PopularityContestScheduleRewriteController
                                              Timer* timer,
                                              int max_running_rewrites,
                                              int max_queued_rewrites);
-  virtual ~PopularityContestScheduleRewriteController();
+  ~PopularityContestScheduleRewriteController() override;
 
   // ScheduleRewriteController interface.
   void ScheduleRewrite(const GoogleString& key, Function* callback) override;
@@ -134,8 +137,8 @@ class PopularityContestScheduleRewriteController
     }
   };
 
-  typedef std::unordered_map<const GoogleString*, Rewrite*,
-                             StringPtrHash, StringPtrEq>
+  typedef std::unordered_map<const GoogleString*, Rewrite*, StringPtrHash,
+                             StringPtrEq>
       RewriteMap;
 
   // Consider starting the next rewrite in queue_, depending on available
@@ -172,7 +175,7 @@ class PopularityContestScheduleRewriteController
   // Re-assign max_queued_rewrites. For use only in tests.
   void SetMaxQueueSizeForTesting(int size) LOCKS_EXCLUDED(mutex_);
 
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   // All known rewrites, indexed by Rewrite->key. Key pointers are all owned
   // by their respective Rewrite.
   RewriteMap all_rewrites_ GUARDED_BY(mutex_);

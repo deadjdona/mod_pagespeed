@@ -1,21 +1,23 @@
-// Copyright 2010 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: bmcquade@google.com (Bryan McQuade)
-//
-// Simple HTML minifier, based on pagespeed's minify_html.cc
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
+// Simple HTML minifier, based on pagespeed's minify_html.cc
 #include <cstdio>
 #include <fstream>
 
@@ -34,10 +36,7 @@
 
 namespace {
 
-using net_instaweb::StrCat;
-
-void ReadFileToStringOrDie(const char* filename,
-                           GoogleString* dest) {
+void ReadFileToStringOrDie(const char* filename, GoogleString* dest) {
   std::ifstream file_stream;
   file_stream.open(filename, std::ifstream::in | std::ifstream::binary);
   CHECK(!file_stream.fail());
@@ -47,8 +46,7 @@ void ReadFileToStringOrDie(const char* filename,
   CHECK(!file_stream.fail());
 }
 
-void WriteStringToFileOrDie(const GoogleString& src,
-                            const char* filename) {
+void WriteStringToFileOrDie(const GoogleString& src, const char* filename) {
   std::ofstream file_stream;
   file_stream.open(filename, std::ifstream::out | std::ifstream::binary);
   CHECK(!file_stream.fail());
@@ -63,8 +61,7 @@ class HtmlMinifier {
   ~HtmlMinifier();
 
   // Return true if successful, false on error.
-  bool MinifyHtml(const GoogleString& input_name,
-                  const GoogleString& input,
+  bool MinifyHtml(const GoogleString& input_name, const GoogleString& input,
                   GoogleString* output);
 
  private:
@@ -97,8 +94,7 @@ HtmlMinifier::HtmlMinifier()
 HtmlMinifier::~HtmlMinifier() {}
 
 bool HtmlMinifier::MinifyHtml(const GoogleString& input_name,
-                              const GoogleString& input,
-                              GoogleString* output) {
+                              const GoogleString& input, GoogleString* output) {
   net_instaweb::StringWriter string_writer(output);
   html_writer_filter_.set_writer(&string_writer);
 
@@ -107,7 +103,7 @@ bool HtmlMinifier::MinifyHtml(const GoogleString& input_name,
   html_parse_.ParseText(input.data(), input.size());
   html_parse_.FinishParse();
 
-  html_writer_filter_.set_writer(NULL);
+  html_writer_filter_.set_writer(nullptr);
 
   return true;
 }

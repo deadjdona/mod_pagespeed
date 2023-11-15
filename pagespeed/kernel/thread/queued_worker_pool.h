@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //
 // implements a simple worker pool, allowing arbitrary functions to run
 // using a pool of threads of predefined maximum size.
@@ -71,14 +73,12 @@ class QueuedWorkerPool {
     class AddFunction : public Function {
      public:
       AddFunction(net_instaweb::Sequence* sequence, Function* callback)
-          : sequence_(sequence), callback_(callback) { }
-      virtual ~AddFunction();
+          : sequence_(sequence), callback_(callback) {}
+      ~AddFunction() override;
 
      protected:
-      virtual void Run() {
-        sequence_->Add(callback_);
-      }
-      virtual void Cancel() {
+      void Run() override { sequence_->Add(callback_); }
+      void Cancel() override {
         sequence_->Add(MakeFunction(callback_, &Function::CallCancel));
       }
 
@@ -100,7 +100,7 @@ class QueuedWorkerPool {
     //
     // If the pool is being shut down at the time Add is being called,
     // this method will call function->Cancel().
-    void Add(Function* function) LOCKS_EXCLUDED(sequence_mutex_);
+    void Add(Function* function) override LOCKS_EXCLUDED(sequence_mutex_);
 
     void set_queue_size_stat(Waveform* x) { queue_size_ = x; }
 
@@ -117,7 +117,7 @@ class QueuedWorkerPool {
     Sequence(ThreadSystem* thread_system, QueuedWorkerPool* pool);
 
     // Free by calling QueuedWorkerPool::FreeSequence().
-    ~Sequence();
+    ~Sequence() override;
 
     // Resets a new or recycled Sequence to its original state.
     void Reset();
@@ -149,11 +149,11 @@ class QueuedWorkerPool {
 
     friend class QueuedWorkerPool;
     std::deque<Function*> work_queue_ GUARDED_BY(sequence_mutex_);
-    scoped_ptr<ThreadSystem::CondvarCapableMutex> sequence_mutex_;
+    std::unique_ptr<ThreadSystem::CondvarCapableMutex> sequence_mutex_;
     QueuedWorkerPool* pool_;
     bool shutdown_ GUARDED_BY(sequence_mutex_);
     bool active_ GUARDED_BY(sequence_mutex_);
-    scoped_ptr<ThreadSystem::Condvar> termination_condvar_
+    std::unique_ptr<ThreadSystem::Condvar> termination_condvar_
         GUARDED_BY(sequence_mutex_);
     Waveform* queue_size_;
     size_t max_queue_size_;
@@ -229,7 +229,7 @@ class QueuedWorkerPool {
   void SequenceNoLongerActive(Sequence* sequence);
 
   ThreadSystem* thread_system_;
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
 
   // active_workers_ and available_workers_ are mutually exclusive.
   std::set<QueuedWorker*> active_workers_;

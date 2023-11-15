@@ -1,39 +1,36 @@
 language: c++
-sudo: required
 compiler:
-  - gcc
-
+  - clang
+dist: focal
 git:
-  # It takes a while to clone our submodules, so we'd like to use --jobs to
-  # speed it up. Here we prevent travis from using git clone --recursive, so
-  # below in before_install we can manually update including --jobs.
+  # Dependencies will be fetched via bazel. So no submodules here.
   submodules: false
+  depth: 10
 
 before_install:
-  # Unfortunately, the version of git we get by default is too low to support
-  # --jobs on subdmodule, so update git before pulling in the submodules.
   - sudo add-apt-repository -y ppa:git-core/ppa
   - sudo apt-get update -q
   - sudo apt-get install -q -y git
-  - git submodule update --init --recursive --jobs=6
-
+  - sudo apt-get install pkg-config zip g++ zlib1g-dev unzip python3 ninja-build cmake gperf memcached apache2-dev python2 npm
+  - sudo npm install -g @bazel/bazelisk
+  - wget https://apt.llvm.org/llvm.sh
+  - chmod +x llvm.sh
+  - sudo ./llvm.sh 14
+  - sudo service memcached start
+  - sudo service redis-server start
 env:
   global:
     - MAKEFLAGS=-j3
+    - CXX=clang++-14
+    - CC=clang-14
   matrix:
     - BIT_FLAG=
-    # This would do another build for 32-bit, but we're already borderline
-    # too slow on faster 64-bit, so skip this for now.
-    # - BIT_FLAG=--32bit
 
 script:
-  # Travis will time out our build if doesn't output anything for > 10 mintes,
-  # but --verbose sometimes outputs more than 4 MB of data, which will also
-  # cause our build to be killed. travis_wait allows the command to be silent
-  # for longer, but has the downside of not producing output if we timeout. See:
-  # https://docs.travis-ci.com/user/common-build-problems/#Build-times-out-because-no-output-was-received
-  # For now, stick with --verbose and keep an eye on the logs.
-  - install/build_release.sh --verbose --skip_psol --debug $BIT_FLAG
+  - bazel test --test_env=REDIS_PORT=6379 --test_env=MEMCACHED_PORT=11211 -c dbg  --test_output=streamed //test/...
+
+after_failure:
+  - cat build.log
 
 notifications:
   email:

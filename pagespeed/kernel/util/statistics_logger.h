@@ -1,19 +1,21 @@
-// Copyright 2013 Google Inc. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: bvb@google.com (Ben VanBerkum)
-// Author: sligocki@google.com (Shawn Ligocki)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #ifndef PAGESPEED_KERNEL_BASE_STATISTICS_LOGGER_H_
 #define PAGESPEED_KERNEL_BASE_STATISTICS_LOGGER_H_
@@ -42,11 +44,11 @@ class Writer;
 class StatisticsLogger {
  public:
   // Does not take ownership of any objects passed in.
-  StatisticsLogger(
-      int64 update_interval_ms, int64 max_logfile_size_kb,
-      const StringPiece& log_file, MutexedScalar* last_dump_timestamp,
-      MessageHandler* message_handler, Statistics* stats,
-      FileSystem* file_system, Timer* timer);
+  StatisticsLogger(int64 update_interval_ms, int64 max_logfile_size_kb,
+                   const StringPiece& logfile_name,
+                   MutexedScalar* last_dump_timestamp,
+                   MessageHandler* message_handler, Statistics* stats,
+                   FileSystem* file_system, Timer* timer);
   ~StatisticsLogger();
 
   // Writes filtered variable data in JSON format to the given writer.
@@ -90,25 +92,25 @@ class StatisticsLogger {
   void ParseDataFromReader(const StringSet& var_titles,
                            StatisticsLogfileReader* reader,
                            std::vector<int64>* list_of_timestamps,
-                           VarMap* parsed_var_data) const;
+                           VarMap* var_values) const;
   // Save the variables needed by graphs page to the map.
   void ParseDataForGraphs(StatisticsLogfileReader* reader,
                           std::vector<int64>* list_of_timestamps,
-                          VarMap* parsed_var_data) const;
+                          VarMap* var_values) const;
   // Parse a string into a map of variable name -> value.
   // Note: parsed_var_data StringPieces point into logfile_var_data and thus
   // have same lifetime as it.
-  void ParseVarDataIntoMap(StringPiece logfile_var_data,
-                           std::map<StringPiece, StringPiece>* parsed_var_data)
-      const;
-  void PrintVarDataAsJSON(const VarMap& parsed_var_data, Writer* writer,
-                          MessageHandler* message_handler) const;
-  void PrintTimestampListAsJSON(const std::vector<int64>& list_of_timestamps,
-                                Writer* writer,
-                                MessageHandler* message_handler) const;
+  static void ParseVarDataIntoMap(
+      StringPiece logfile_var_data,
+      std::map<StringPiece, StringPiece>* parsed_var_data);
+  static void PrintVarDataAsJSON(const VarMap& parsed_var_data, Writer* writer,
+                                 MessageHandler* message_handler);
+  static void PrintTimestampListAsJSON(
+      const std::vector<int64>& list_of_timestamps, Writer* writer,
+      MessageHandler* message_handler);
   void PrintJSON(const std::vector<int64>& list_of_timestamps,
-                 const VarMap& parsed_var_data,
-                 Writer* writer, MessageHandler* message_handler) const;
+                 const VarMap& parsed_var_data, Writer* writer,
+                 MessageHandler* message_handler) const;
   void AddVariable(StringPiece var_name);
 
   // Initializes all stats that will be needed for logging. Only call this in
@@ -123,7 +125,7 @@ class StatisticsLogger {
   // file_system_ and timer_ are owned by someone who called the constructor
   // (usually Apache's ServerContext).
   FileSystem* file_system_;
-  Timer* timer_;    // Used to retrieve timestamps
+  Timer* timer_;  // Used to retrieve timestamps
   const int64 update_interval_ms_;
   const int64 max_logfile_size_kb_;
   GoogleString logfile_name_;

@@ -1,23 +1,27 @@
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-// Author: matterbury@google.com (Matt Atterbury),
 //         morlovich@google.com (Maksim Orlovich)
 
 #include "net/instaweb/rewriter/public/measurement_proxy_url_namer.h"
 
-#include <cstddef>                     // for size_t
+#include <cstddef>  // for size_t
 
 #include "base/logging.h"
 #include "net/instaweb/rewriter/public/rewrite_options.h"
@@ -25,7 +29,6 @@
 #include "pagespeed/kernel/http/google_url.h"
 
 namespace net_instaweb {
-
 
 MeasurementProxyUrlNamer::MeasurementProxyUrlNamer(
     const GoogleString& top_origin, const GoogleString& password)
@@ -35,15 +38,14 @@ MeasurementProxyUrlNamer::MeasurementProxyUrlNamer(
   }
 }
 
-MeasurementProxyUrlNamer::~MeasurementProxyUrlNamer() {
-}
+MeasurementProxyUrlNamer::~MeasurementProxyUrlNamer() {}
 
-bool MeasurementProxyUrlNamer::Decode(
-    const GoogleUrl& request_url, const RewriteOptions*,
-    GoogleString* decoded) const {
+bool MeasurementProxyUrlNamer::Decode(const GoogleUrl& request_url,
+                                      const RewriteOptions*,
+                                      GoogleString* decoded) const {
   StringPiece config, config_domain, password;
-  return DecodePathDetails(request_url, &config, &config_domain,
-                           &password, decoded);
+  return DecodePathDetails(request_url, &config, &config_domain, &password,
+                           decoded);
 }
 
 // Naming scheme:
@@ -57,12 +59,11 @@ bool MeasurementProxyUrlNamer::Decode(
 //   x: cross-domain https
 //   s: same-domain https
 //   t: cross-domain https
-bool MeasurementProxyUrlNamer::DecodePathDetails(
-    const GoogleUrl& request_url,
-    StringPiece* config,
-    StringPiece* config_domain,
-    StringPiece* password,
-    GoogleString* res_url) {
+bool MeasurementProxyUrlNamer::DecodePathDetails(const GoogleUrl& request_url,
+                                                 StringPiece* config,
+                                                 StringPiece* config_domain,
+                                                 StringPiece* password,
+                                                 GoogleString* res_url) {
   StringPiece request_path = request_url.PathSansLeaf();
   StringPieceVector path_vector;
   SplitStringPieceToVector(request_path, "/", &path_vector, false);

@@ -1,18 +1,21 @@
-// Copyright 2013 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: sligocki@google.com (Shawn Ligocki)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/system/in_place_resource_recorder.h"
 
@@ -41,16 +44,15 @@ const char kNumFailed[] = "ipro_recorder_failed";
 const char kNumDroppedDueToLoad[] = "ipro_recorder_dropped_due_to_load";
 const char kNumDroppedDueToSize[] = "ipro_recorder_dropped_due_to_size";
 
-}
+}  // namespace
 
 AtomicInt32 InPlaceResourceRecorder::active_recordings_(0);
 
 InPlaceResourceRecorder::InPlaceResourceRecorder(
-    const RequestContextPtr& request_context,
-    StringPiece url, StringPiece fragment,
-    const RequestHeaders::Properties& request_properties,
-    int max_response_bytes, int max_concurrent_recordings,
-    HTTPCache* cache, Statistics* stats, MessageHandler* handler)
+    const RequestContextPtr& request_context, StringPiece url,
+    StringPiece fragment, const RequestHeaders::Properties& request_properties,
+    int max_response_bytes, int max_concurrent_recordings, HTTPCache* cache,
+    Statistics* stats, MessageHandler* handler)
     : url_(url.data(), url.size()),
       fragment_(fragment.data(), fragment.size()),
       request_properties_(request_properties),
@@ -59,7 +61,8 @@ InPlaceResourceRecorder::InPlaceResourceRecorder(
       max_concurrent_recordings_(max_concurrent_recordings),
       write_to_resource_value_(request_context, &resource_value_),
       inflating_fetch_(&write_to_resource_value_),
-      cache_(cache), handler_(handler),
+      cache_(cache),
+      handler_(handler),
       num_resources_(stats->GetVariable(kNumResources)),
       num_inserted_into_cache_(stats->GetVariable(kNumInsertedIntoCache)),
       num_not_cacheable_(stats->GetVariable(kNumNotCacheable)),
@@ -127,8 +130,7 @@ bool InPlaceResourceRecorder::Write(const StringPiece& contents,
 }
 
 void InPlaceResourceRecorder::ConsiderResponseHeaders(
-    HeadersKind headers_kind,
-    ResponseHeaders* response_headers) {
+    HeadersKind headers_kind, ResponseHeaders* response_headers) {
   CHECK(response_headers != nullptr);
   DCHECK(!full_response_headers_considered_);
 
@@ -149,9 +151,8 @@ void InPlaceResourceRecorder::ConsiderResponseHeaders(
   if (max_response_bytes_ <= 0 &&
       response_headers->FindContentLength(&content_length) &&
       content_length > max_response_bytes_) {
-    VLOG(1) << "IPRO: Content-Length header indicates that ["
-            << url_ << "] is too large to record (" << content_length
-            << " bytes)";
+    VLOG(1) << "IPRO: Content-Length header indicates that [" << url_
+            << "] is too large to record (" << content_length << " bytes)";
     DroppedDueToSize();
     return;
   }
@@ -171,8 +172,7 @@ void InPlaceResourceRecorder::ConsiderResponseHeaders(
 
     // Bail if not an image, css, or JS.
     if ((content_type == nullptr) ||
-        !(content_type->IsImage() ||
-          content_type->IsCss() ||
+        !(content_type->IsImage() || content_type->IsCss() ||
           content_type->IsJsLike())) {
       // DroppedAsUncacheable().  If at some point we decide to go this
       // way, we must also change the expected cache_inserts count in
@@ -240,11 +240,10 @@ void InPlaceResourceRecorder::DroppedDueToSize() {
 
 void InPlaceResourceRecorder::DroppedAsUncacheable() {
   if (!failure_) {
-    cache_->RememberFailure(
-        url_, fragment_,
-        status_code_ == 200 ? kFetchStatusUncacheable200
-        : kFetchStatusUncacheableError,
-        handler_);
+    cache_->RememberFailure(url_, fragment_,
+                            status_code_ == 200 ? kFetchStatusUncacheable200
+                                                : kFetchStatusUncacheableError,
+                            handler_);
     failure_ = true;
   }
 }
@@ -260,7 +259,7 @@ void InPlaceResourceRecorder::DoneAndSetHeaders(
     ResponseHeaders* response_headers, bool entire_response_received) {
   if (!entire_response_received) {
     // To record successfully, we must have a complete response.  Otherwise you
-    // get https://github.com/pagespeed/mod_pagespeed/issues/1081.
+    // get https://github.com/apache/incubator-pagespeed-mod/issues/1081.
     Fail();
   }
 
@@ -270,7 +269,7 @@ void InPlaceResourceRecorder::DoneAndSetHeaders(
 
   if (status_code_ == HttpStatus::kOK && resource_value_.contents_size() == 0) {
     // Ignore Empty 200 responses.
-    // https://github.com/pagespeed/mod_pagespeed/issues/1050
+    // https://github.com/apache/incubator-pagespeed-mod/issues/1050
     if (!failure_) {
       cache_->RememberFailure(url_, fragment_, kFetchStatusEmpty, handler_);
     }

@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: nforman@google.com (Naomi Forman)
 //
 // Functionality for parsing css declarations.
 // Currently this file deals with dimensions only, but could
@@ -35,7 +37,7 @@ class Declarations;
 class MediaQueries;
 class MediaQuery;
 class Selector;
-}
+}  // namespace Css
 
 namespace net_instaweb {
 
@@ -70,7 +72,6 @@ class StyleExtractor {
   explicit StyleExtractor(HtmlElement* element);
   virtual ~StyleExtractor();
 
-
   DimensionState state() const { return state_; }
 
   // If a value was not found, it will be populated with kNoValue.
@@ -85,7 +86,7 @@ class StyleExtractor {
 
  private:
   static Css::Declarations* GetDeclsFromElement(HtmlElement* element);
-  scoped_ptr<Css::Declarations> decls_;
+  std::unique_ptr<Css::Declarations> decls_;
   int width_px_;
   int height_px_;
   DimensionState state_;
@@ -146,7 +147,7 @@ GoogleString JsDetectableSelector(const Css::Selector& selector);
 // then no elements are removed from the first vector, and if the first vector
 // is empty then the second vector is copied into it. Both vectors must be
 // sorted on entry.
-template<typename T>
+template <typename T>
 void EliminateElementsNotIn(std::vector<T>* sorted_inner,
                             const std::vector<T>& sorted_outer) {
   if (!sorted_outer.empty()) {

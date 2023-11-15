@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_HTTP_PUBLIC_CACHE_URL_ASYNC_FETCHER_H_
 #define NET_INSTAWEB_HTTP_PUBLIC_CACHE_URL_ASYNC_FETCHER_H_
@@ -75,18 +76,15 @@ class CacheUrlAsyncFetcher : public UrlAsyncFetcher {
 
   // None of these are owned by CacheUrlAsyncFetcher.
   CacheUrlAsyncFetcher(const Hasher* lock_hasher,
-                       NamedLockManager* lock_manager,
-                       HTTPCache* cache,
+                       NamedLockManager* lock_manager, HTTPCache* cache,
                        const GoogleString& fragment,
-                       AsyncOpHooks* async_op_hooks,
-                       UrlAsyncFetcher* fetcher);
-  virtual ~CacheUrlAsyncFetcher();
+                       AsyncOpHooks* async_op_hooks, UrlAsyncFetcher* fetcher);
+  ~CacheUrlAsyncFetcher() override;
 
-  virtual bool SupportsHttps() const { return fetcher_->SupportsHttps(); }
+  bool SupportsHttps() const override { return fetcher_->SupportsHttps(); }
 
-  virtual void Fetch(const GoogleString& url,
-                     MessageHandler* message_handler,
-                     AsyncFetch* base_fetch);
+  void Fetch(const GoogleString& url, MessageHandler* message_handler,
+             AsyncFetch* base_fetch) override;
 
   // HTTP status code used to indicate that we failed the Fetch because
   // result was not found in cache. (Only happens if fetcher_ == NULL).
@@ -199,10 +197,10 @@ class CacheUrlAsyncFetcher : public UrlAsyncFetcher {
   UrlAsyncFetcher* fetcher_;  // may be NULL.
   AsyncOpHooks* async_op_hooks_;
 
-  Histogram* backend_first_byte_latency_;  // may be NULL.
-  Variable* fallback_responses_served_;  // may be NULL.
-  Variable* fallback_responses_served_while_revalidate_;  // may be NULL.
-  Variable* num_conditional_refreshes_;  // may be NULL.
+  Histogram* backend_first_byte_latency_;                  // may be NULL.
+  Variable* fallback_responses_served_;                    // may be NULL.
+  Variable* fallback_responses_served_while_revalidate_;   // may be NULL.
+  Variable* num_conditional_refreshes_;                    // may be NULL.
   Variable* num_proactively_freshen_user_facing_request_;  // may be NULL.
 
   bool respect_vary_;

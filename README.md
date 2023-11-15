@@ -1,9 +1,9 @@
 # mod_pagespeed
-![logo](https://storage.googleapis.com/icons.google.com.a.appspot.com/google-assets/branding/product_logos/_quantum/res-export/logo_pagespeed_192px_clr.svg)
+![logo](https://www.gstatic.com/images/branding/product/2x/pagespeed_32dp.png)
 
 |CI|Status|
 |---|---|
-|Travis|[![Build Status](https://travis-ci.org/pagespeed/mod_pagespeed.svg?branch=master)](https://travis-ci.org/pagespeed/mod_pagespeed)|
+|Travis|[![Build Status](https://travis-ci.org/apache/incubator-pagespeed-mod.svg?branch=master)](https://travis-ci.org/apache/incubator-pagespeed-mod)|
 
 `mod_pagespeed` is an open-source Apache module created by Google to help Make the Web Faster by rewriting web pages to reduce latency and bandwidth.
 
@@ -23,6 +23,7 @@ mod_pagespeed is built on PageSpeed Optimization Libraries, deployed across 100,
 
 |  Try it 	|   [modpagespeed.com](https://modpagespeed.com)	|
 |---	|---	|
+| Slack | https://the-asf.slack.com/archives/CJTG9RH9U |
 | Read about it  |https://developers.google.com/speed/pagespeed/module   |
 | Download it  | https://modpagespeed.com/doc/download  |
 | Check announcements  |https://groups.google.com/group/mod-pagespeed-announce   |

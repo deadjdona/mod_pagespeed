@@ -1,20 +1,21 @@
 /*
- * Copyright 2014 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #include "net/instaweb/rewriter/public/css_absolutify.h"
 
@@ -26,11 +27,11 @@
 #include "pagespeed/kernel/base/string_util.h"
 #include "pagespeed/kernel/base/string_writer.h"
 #include "pagespeed/kernel/http/google_url.h"
-#include "util/utf8/public/unicodetext.h"
-#include "webutil/css/parser.h"
-#include "webutil/css/property.h"
-#include "webutil/css/selector.h"
-#include "webutil/css/value.h"
+#include "third_party/css_parser/src/util/utf8/public/unicodetext.h"
+#include "third_party/css_parser/src/webutil/css/parser.h"
+#include "third_party/css_parser/src/webutil/css/property.h"
+#include "third_party/css_parser/src/webutil/css/selector.h"
+#include "third_party/css_parser/src/webutil/css/value.h"
 
 namespace net_instaweb {
 
@@ -61,9 +62,9 @@ bool CssAbsolutify::AbsolutifyUrls(Css::Stylesheet* stylesheet,
                                    bool handle_unparseable_sections,
                                    RewriteDriver* driver,
                                    MessageHandler* handler) {
-  RewriteDomainTransformer transformer(
-      &base, &base, driver->server_context(), driver->options(),
-      driver->message_handler());
+  RewriteDomainTransformer transformer(&base, &base, driver->server_context(),
+                                       driver->options(),
+                                       driver->message_handler());
   transformer.set_trim_urls(false);
   bool urls_modified = false;
 
@@ -73,9 +74,9 @@ bool CssAbsolutify::AbsolutifyUrls(Css::Stylesheet* stylesheet,
     Css::FontFace* font_face = *font_face_iter;
     if (AbsolutifyDeclarations(
             &font_face->mutable_declarations(), &transformer,
-            true,  /* Must handle parseable sections in @font-face. */
+            true, /* Must handle parseable sections in @font-face. */
             handle_unparseable_sections, handler)) {
-        urls_modified = true;
+      urls_modified = true;
     }
   }
 
@@ -90,7 +91,9 @@ bool CssAbsolutify::AbsolutifyUrls(Css::Stylesheet* stylesheet,
         case Css::Ruleset::RULESET: {
           Css::Selectors& selectors(ruleset->mutable_selectors());
           if (selectors.is_dummy()) {
-            StringPiece original_bytes = selectors.bytes_in_original_buffer();
+            // XXX(oschaaf): css
+            CssStringPiece tmp = selectors.bytes_in_original_buffer();
+            StringPiece original_bytes(tmp.data(), tmp.size());
             GoogleString rewritten_bytes;
             StringWriter writer(&rewritten_bytes);
             if (CssTagScanner::TransformUrls(original_bytes, &writer,
@@ -103,7 +106,9 @@ bool CssAbsolutify::AbsolutifyUrls(Css::Stylesheet* stylesheet,
         }
         case Css::Ruleset::UNPARSED_REGION: {
           Css::UnparsedRegion* unparsed = ruleset->mutable_unparsed_region();
-          StringPiece original_bytes = unparsed->bytes_in_original_buffer();
+          // XXX(oschaaf): css
+          CssStringPiece tmp = unparsed->bytes_in_original_buffer();
+          StringPiece original_bytes(tmp.data(), tmp.size());
           GoogleString rewritten_bytes;
           StringWriter writer(&rewritten_bytes);
           if (CssTagScanner::TransformUrls(original_bytes, &writer,
@@ -137,11 +142,13 @@ bool CssAbsolutify::AbsolutifyDeclarations(
     Css::Declaration* decl = *decl_iter;
     if (decl->prop() == Css::Property::UNPARSEABLE) {
       if (handle_unparseable_sections) {
-        StringPiece original_bytes = decl->bytes_in_original_buffer();
+        // XXX(oschaaf): css
+        CssStringPiece tmp = decl->bytes_in_original_buffer();
+        StringPiece original_bytes(tmp.data(), tmp.size());
         GoogleString rewritten_bytes;
         StringWriter writer(&rewritten_bytes);
-        if (CssTagScanner::TransformUrls(original_bytes, &writer,
-                                         transformer, handler)) {
+        if (CssTagScanner::TransformUrls(original_bytes, &writer, transformer,
+                                         handler)) {
           urls_modified = true;
           decl->set_bytes_in_original_buffer(rewritten_bytes);
         }

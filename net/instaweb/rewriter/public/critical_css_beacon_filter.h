@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmaessen@google.com (Jan-Willem Maessen)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_CRITICAL_CSS_BEACON_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_CRITICAL_CSS_BEACON_FILTER_H_
@@ -57,36 +58,35 @@ class CriticalCssBeaconFilter : public CssSummarizerBase {
   static const char kCriticalCssSkippedDueToCharset[];
 
   explicit CriticalCssBeaconFilter(RewriteDriver* driver);
-  virtual ~CriticalCssBeaconFilter();
+  ~CriticalCssBeaconFilter() override;
 
   static void InitStats(Statistics* statistics);
 
-  virtual const char* Name() const { return "CriticalCssBeacon"; }
-  virtual const char* id() const { return "cb"; }
+  const char* Name() const override { return "CriticalCssBeacon"; }
+  const char* id() const override { return "cb"; }
 
   // This filter needs access to all critical selectors (even those from
   // unauthorized domains) in order to let the clients use them while
   // detecting critical selectors that can be subsequently beaconed back
   // to the server and eventually inlined into the HTML.
-  virtual RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
-      const {
+  RewriteDriver::InlineAuthorizationPolicy AllowUnauthorizedDomain()
+      const override {
     return driver()->options()->HasInlineUnauthorizedResourceType(
-               semantic_type::kStylesheet) ?
-           RewriteDriver::kInlineUnauthorizedResources :
-           RewriteDriver::kInlineOnlyAuthorizedResources;
+               semantic_type::kStylesheet)
+               ? RewriteDriver::kInlineUnauthorizedResources
+               : RewriteDriver::kInlineOnlyAuthorizedResources;
   }
 
   // Selectors are inlined into javascript.
-  virtual bool IntendedForInlining() const { return true; }
+  bool IntendedForInlining() const override { return true; }
   ScriptUsage GetScriptUsage() const override { return kWillInjectScripts; }
 
  protected:
-  virtual bool MustSummarize(HtmlElement* element) const;
-  virtual void Summarize(Css::Stylesheet* stylesheet,
-                         GoogleString* out) const;
-  virtual void SummariesDone();
+  bool MustSummarize(HtmlElement* element) const override;
+  void Summarize(Css::Stylesheet* stylesheet, GoogleString* out) const override;
+  void SummariesDone() override;
 
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void DetermineEnabled(GoogleString* disabled_reason) override;
 
  private:
   static void FindSelectorsFromRuleset(const Css::Ruleset& ruleset,

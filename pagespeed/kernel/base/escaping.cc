@@ -1,26 +1,27 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: vitaliyl@google.com (Vitaliy Lvin)
 
 #include "pagespeed/kernel/base/escaping.h"
 
 #include <cstddef>
 
-#include "strings/stringpiece_utils.h"
+////#include "strings/stringpiece_utils.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
@@ -34,8 +35,7 @@ namespace net_instaweb {
 // This is /almost/ completely right: U+2028 and U+2029 are
 // line terminators as well (ECMA 262-5 --- 7.3, 7.8.4), so should really be
 // escaped, too, but we don't have the encoding here.
-void EscapeToJsStringLiteral(const StringPiece& original,
-                             bool add_quotes,
+void EscapeToJsStringLiteral(const StringPiece& original, bool add_quotes,
                              GoogleString* escaped) {
   // Optimistically assume no escaping will be required and reserve enough space
   // for that result.  This assumes that either escaped is empty (or nearly so),
@@ -107,8 +107,7 @@ void EscapeToJsStringLiteral(const StringPiece& original,
   }
 }
 
-void EscapeToJsonStringLiteral(const StringPiece& original,
-                               bool add_quotes,
+void EscapeToJsonStringLiteral(const StringPiece& original, bool add_quotes,
                                GoogleString* escaped) {
   // Optimistically assume no escaping will be required and reserve enough space
   // for that result.
@@ -121,7 +120,7 @@ void EscapeToJsonStringLiteral(const StringPiece& original,
 
     if (code <= 0x1F || code > 0x7F || code == '<' || code == '>' ||
         code == '"' || code == '\\') {
-      *(escaped) += StringPrintf("\\u00%02x", code);
+      *(escaped) += absl::StrFormat("\\u00%02x", code);
     } else {
       *(escaped) += original[c];
     }

@@ -1,22 +1,24 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jkarlin@google.com (Josh Karlin)
-
 #include "net/instaweb/rewriter/public/fake_filter.h"
+
 #include <memory>
 
 #include "net/instaweb/rewriter/cached_result.pb.h"
@@ -69,9 +71,9 @@ void FakeFilter::Context::DoRewriteSingle(const ResourcePtr input,
     // Set the output type here to make sure that the CachedResult url
     // field has the correct extension for the type.
     const ContentType* output_type = &kContentTypeText;
-    if (filter_->output_content_type() != NULL) {
+    if (filter_->output_content_type() != nullptr) {
       output_type = filter_->output_content_type();
-    } else if (input->type() != NULL) {
+    } else if (input->type() != nullptr) {
       output_type = input->type();
     }
     ResourceVector rv = ResourceVector(1, input);
@@ -86,7 +88,7 @@ void FakeFilter::Context::DoRewriteSingle(const ResourcePtr input,
 
 GoogleString FakeFilter::Context::UserAgentCacheKey(
     const ResourceContext* resource_context) const {
-  if (resource_context != NULL) {
+  if (resource_context != nullptr) {
     return ImageUrlEncoder::CacheKeyFromResourceContext(*resource_context);
   }
   return "";
@@ -102,7 +104,7 @@ void FakeFilter::StartElementImpl(HtmlElement* element) {
       ResourcePtr input_resource(CreateInputResourceOrInsertDebugComment(
           attributes[i].url->DecodedValueOrNull(),
           RewriteDriver::InputRole::kUnknown, element));
-      if (input_resource.get() == NULL) {
+      if (input_resource.get() == nullptr) {
         return;
       }
       ResourceSlotPtr slot(
@@ -117,11 +119,10 @@ void FakeFilter::StartElementImpl(HtmlElement* element) {
 RewriteContext* FakeFilter::MakeNestedRewriteContext(
     RewriteContext* parent, const ResourceSlotPtr& slot) {
   ResourceContext* resource_context = new ResourceContext;
-  if (parent != NULL && parent->resource_context() != NULL) {
+  if (parent != nullptr && parent->resource_context() != nullptr) {
     resource_context->CopyFrom(*parent->resource_context());
   }
-  RewriteContext* context =
-      MakeFakeContext(NULL, parent, resource_context);
+  RewriteContext* context = MakeFakeContext(nullptr, parent, resource_context);
   context->AddSlot(slot);
   return context;
 }

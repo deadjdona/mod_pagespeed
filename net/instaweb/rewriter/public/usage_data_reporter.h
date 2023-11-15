@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: sligocki@google.com (Shawn Ligocki)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_USAGE_DATA_REPORTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_USAGE_DATA_REPORTER_H_
@@ -47,16 +48,13 @@ class UsageDataReporter {
   virtual void ReportResponseData(const GoogleUrl& url, int32 response_code,
                                   const GoogleString& reason_phrase,
                                   const ContentType* content_type,
-                                  int64 time_taken,
-                                  const GoogleString& ip,
+                                  int64 time_taken, const GoogleString& ip,
                                   const GoogleString& user_agent) {}
 
   // Reports fetch errors.
   virtual void ReportFetchErrors(const GoogleString& host,
-                                 const GoogleString& url,
-                                 int32 error_code,
+                                 const GoogleString& url, int32 error_code,
                                  const StringPiece& fetch_error) {}
-
 
   // Report a warning.
   virtual void ReportWarning(const GoogleUrl& url, int32 warning_code,

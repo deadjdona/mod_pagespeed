@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmaessen@google.com (Jan-Willem Maessen)
 
 #include "pagespeed/kernel/base/checking_thread_system.h"
 
@@ -33,24 +34,18 @@ class Timer;
 class CheckingThreadSystem::CheckingCondvar : public ThreadSystem::Condvar {
  public:
   CheckingCondvar(CheckingThreadSystem::Mutex* mutex,
-          ThreadSystem::Condvar* condvar)
-      : mutex_(mutex), condvar_(condvar) { }
-  virtual ~CheckingCondvar() { }
-  virtual CheckingThreadSystem::Mutex* mutex() const {
-    return mutex_;
-  }
-  virtual void Signal() {
-    condvar_->Signal();
-  }
-  virtual void Broadcast() {
-    condvar_->Broadcast();
-  }
-  virtual void Wait() {
+                  ThreadSystem::Condvar* condvar)
+      : mutex_(mutex), condvar_(condvar) {}
+  ~CheckingCondvar() override {}
+  CheckingThreadSystem::Mutex* mutex() const override { return mutex_; }
+  void Signal() override { condvar_->Signal(); }
+  void Broadcast() override { condvar_->Broadcast(); }
+  void Wait() override {
     mutex_->DropLockControl();
     condvar_->Wait();
     mutex_->TakeLockControl();
   }
-  virtual void TimedWait(int64 timeout_ms) {
+  void TimedWait(int64 timeout_ms) override {
     mutex_->DropLockControl();
     condvar_->TimedWait(timeout_ms);
     mutex_->TakeLockControl();
@@ -58,7 +53,7 @@ class CheckingThreadSystem::CheckingCondvar : public ThreadSystem::Condvar {
 
  private:
   CheckingThreadSystem::Mutex* mutex_;
-  scoped_ptr<ThreadSystem::Condvar> condvar_;
+  std::unique_ptr<ThreadSystem::Condvar> condvar_;
   DISALLOW_COPY_AND_ASSIGN(CheckingCondvar);
 };
 
@@ -181,7 +176,7 @@ void CheckingThreadSystem::RWLock::ReaderUnlock() {
 
 // Destructor and methods for CheckingThreadSystem
 
-CheckingThreadSystem::~CheckingThreadSystem() { }
+CheckingThreadSystem::~CheckingThreadSystem() {}
 
 CheckingThreadSystem::Mutex* CheckingThreadSystem::NewMutex() {
   return new Mutex(thread_system_->NewMutex());
@@ -196,8 +191,6 @@ ThreadSystem::ThreadImpl* CheckingThreadSystem::NewThreadImpl(
   return thread_system_->NewThreadImpl(wrapper, flags);
 }
 
-Timer* CheckingThreadSystem::NewTimer() {
-  return thread_system_->NewTimer();
-}
+Timer* CheckingThreadSystem::NewTimer() { return thread_system_->NewTimer(); }
 
 }  // namespace net_instaweb

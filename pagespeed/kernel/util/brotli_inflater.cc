@@ -1,28 +1,29 @@
 /*
- * Copyright 2016 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jcrowell@google.com (Jeffrey Crowell)
 
 #include "pagespeed/kernel/util/brotli_inflater.h"
 
 #include <cstddef>
 
 #include "base/logging.h"
-#include "third_party/brotli/src/dec/decode.h"
-#include "third_party/brotli/src/enc/encode.h"
+#include "external/brotli/c/include/brotli/decode.h"
+#include "external/brotli/c/include/brotli/encode.h"
 #include "pagespeed/kernel/base/message_handler.h"
 #include "pagespeed/kernel/base/stack_buffer.h"
 #include "pagespeed/kernel/base/writer.h"
@@ -32,9 +33,9 @@ namespace net_instaweb {
 BrotliInflater::BrotliInflater()
     : state_used_(false),
       brotli_state_(BrotliDecoderCreateInstance(nullptr, nullptr, nullptr),
-                    &BrotliDecoderDestroyInstance) { }
+                    &BrotliDecoderDestroyInstance) {}
 
-BrotliInflater::~BrotliInflater() { }
+BrotliInflater::~BrotliInflater() {}
 
 void BrotliInflater::ResetState() {
   if (state_used_) {
@@ -81,9 +82,10 @@ bool BrotliInflater::DecompressHelper(StringPiece in, MessageHandler* handler,
   while (result != BROTLI_DECODER_RESULT_SUCCESS) {
     size_t available_out = sizeof(output);
     char* next_out = output;
-    result = BrotliDecoderDecompressStream(brotli_state_.get(),
-        &available_in, reinterpret_cast<const unsigned char**>(&next_in),
-        &available_out, reinterpret_cast<unsigned char**>(&next_out), nullptr);
+    result = BrotliDecoderDecompressStream(
+        brotli_state_.get(), &available_in,
+        reinterpret_cast<const unsigned char**>(&next_in), &available_out,
+        reinterpret_cast<unsigned char**>(&next_out), nullptr);
     CHECK(next_in >= in.data());
     CHECK_LE(available_out, sizeof(output));
     in.remove_prefix(next_in - in.data());
@@ -100,8 +102,9 @@ bool BrotliInflater::DecompressHelper(StringPiece in, MessageHandler* handler,
         // Decompression succeeded, write out the last chunk if needed.
         break;
       case BROTLI_DECODER_RESULT_ERROR:
-        handler->Message(kError, "%s", BrotliDecoderErrorString(
-            BrotliDecoderGetErrorCode(brotli_state_.get())));
+        handler->Message(kError, "%s",
+                         BrotliDecoderErrorString(
+                             BrotliDecoderGetErrorCode(brotli_state_.get())));
         return false;
     }
     StringPiece chunk(output, sizeof(output) - available_out);

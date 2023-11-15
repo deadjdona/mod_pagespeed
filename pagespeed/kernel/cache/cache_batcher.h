@@ -1,26 +1,26 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_CACHE_CACHE_BATCHER_H_
 #define PAGESPEED_KERNEL_CACHE_CACHE_BATCHER_H_
 
 #include <cstddef>
-
 #include <unordered_map>
 #include <vector>
 
@@ -75,8 +75,7 @@ class CacheBatcher : public CacheInterface {
   struct Options {
     Options()
         : max_parallel_lookups(kDefaultMaxParallelLookups),
-          max_pending_gets(kDefaultMaxPendingGets) {
-    }
+          max_pending_gets(kDefaultMaxPendingGets) {}
 
     int max_parallel_lookups;
     int max_pending_gets;
@@ -86,25 +85,25 @@ class CacheBatcher : public CacheInterface {
   // Does not take ownership of the cache. Takes ownership of the mutex.
   CacheBatcher(const Options& options, CacheInterface* cache,
                AbstractMutex* mutex, Statistics* statistics);
-  virtual ~CacheBatcher();
+  ~CacheBatcher() override;
 
   // Startup-time (pre-construction) initialization of statistics
   // variables so the correct-sized shared memory can be constructed
   // in the root Apache process.
   static void InitStats(Statistics* statistics);
 
-  virtual void Get(const GoogleString& key, Callback* callback);
-  virtual void Put(const GoogleString& key, const SharedString& value);
-  virtual void Delete(const GoogleString& key);
-  virtual GoogleString Name() const;
+  void Get(const GoogleString& key, Callback* callback) override;
+  void Put(const GoogleString& key, const SharedString& value) override;
+  void Delete(const GoogleString& key) override;
+  GoogleString Name() const override;
   static GoogleString FormatName(StringPiece cache, int parallelism, int max);
 
   // Note: CacheBatcher cannot do any batching if given a blocking cache,
   // however it is still functional so pass on the bit.
-  virtual bool IsBlocking() const { return cache_->IsBlocking(); }
+  bool IsBlocking() const override { return cache_->IsBlocking(); }
 
-  virtual bool IsHealthy() const { return cache_->IsHealthy(); }
-  virtual void ShutDown();
+  bool IsHealthy() const override { return cache_->IsHealthy(); }
+  void ShutDown() override;
 
  private:
   typedef std::unordered_map<GoogleString, std::vector<Callback*>> CallbackMap;
@@ -122,7 +121,7 @@ class CacheBatcher : public CacheInterface {
       EXCLUSIVE_LOCKS_REQUIRED(mutex_);
   void MoveQueuedKeys() EXCLUSIVE_LOCKS_REQUIRED(mutex_);
   void ExtractInFlightKeys(const GoogleString& key,
-                   std::vector<CacheInterface::Callback*>* callbacks)
+                           std::vector<CacheInterface::Callback*>* callbacks)
       LOCKS_EXCLUDED(mutex_);
 
   void DecrementInFlightGets(int n) LOCKS_EXCLUDED(mutex_);
@@ -138,7 +137,7 @@ class CacheBatcher : public CacheInterface {
   Variable* queued_gets_;
   CallbackMap in_flight_ GUARDED_BY(mutex_);
   int last_batch_size_ GUARDED_BY(mutex_);
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   int num_in_flight_groups_ GUARDED_BY(mutex_);
   int num_in_flight_keys_ GUARDED_BY(mutex_);
   int num_pending_gets_ GUARDED_BY(mutex_);

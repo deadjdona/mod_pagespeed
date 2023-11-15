@@ -1,17 +1,20 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 // Authors: jmarantz@google.com (Joshua Marantz)
@@ -39,20 +42,18 @@ class RequestHeaders;
 class ExternalUrlFetcher : public UrlAsyncFetcher {
  public:
   ExternalUrlFetcher() {}
-  virtual ~ExternalUrlFetcher() {}
+  ~ExternalUrlFetcher() override {}
 
   // TODO(sligocki): Allow protocol version number (e.g. HTTP/1.1)
   // and request type (e.g. GET, POST, etc.) to be specified.
-  virtual void Fetch(const GoogleString& url,
-                     MessageHandler* message_handler,
-                     AsyncFetch* fetch);
+  void Fetch(const GoogleString& url, MessageHandler* message_handler,
+             AsyncFetch* fetch) override;
 
   // Default user agent to use.
   static const char kDefaultUserAgent[];
 
   // Sets the path to "binary" when fetching using "how".
   void set_binary(const GoogleString& binary);
-
 
  protected:
   // Appends to escaped_headers one header line for each Name, Value
@@ -71,8 +72,7 @@ class ExternalUrlFetcher : public UrlAsyncFetcher {
   // specified headers, the User-Agent is also explicitly set to the
   // value of user_agent, unless the latter is NULL.
   virtual GoogleString ConstructFetchCommand(
-      const GoogleString& escaped_url,
-      const char* user_agent,
+      const GoogleString& escaped_url, const char* user_agent,
       const StringVector& escaped_headers) = 0;
 
   DISALLOW_COPY_AND_ASSIGN(ExternalUrlFetcher);

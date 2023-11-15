@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_HTML_HTML_ELEMENT_H_
 #define PAGESPEED_KERNEL_HTML_HTML_ELEMENT_H_
@@ -57,11 +58,7 @@ class HtmlElement : public HtmlNode {
   };
 
   // Various ways things can be quoted (or not)
-  enum QuoteStyle {
-    NO_QUOTE,
-    SINGLE_QUOTE,
-    DOUBLE_QUOTE
-  };
+  enum QuoteStyle { NO_QUOTE, SINGLE_QUOTE, DOUBLE_QUOTE };
 
   class Attribute : public InlineSListElement<Attribute> {
    public:
@@ -218,7 +215,7 @@ class HtmlElement : public HtmlNode {
   typedef InlineSList<Attribute>::Iterator AttributeIterator;
   typedef InlineSList<Attribute>::ConstIterator AttributeConstIterator;
 
-  virtual ~HtmlElement();
+  ~HtmlElement() override;
 
   // Determines whether this node is still accessible via API.  Note that
   // when a FLUSH occurs after an open-element, the element will be live()
@@ -226,9 +223,9 @@ class HtmlElement : public HtmlNode {
   // html_parse->IsRewritable(node) is false.  Once a node is closed, a FLUSH
   // will cause the node's data to be freed, which triggers this method
   // returning false.
-  virtual bool live() const { return (data_.get() != NULL) && data_->live_; }
+  bool live() const override { return (data_.get() != NULL) && data_->live_; }
 
-  virtual void MarkAsDead(const HtmlEventListIterator& end);
+  void MarkAsDead(const HtmlEventListIterator& end) override;
 
   // Add a copy of an attribute to this element.  The attribute may come
   // from this element, or another one.
@@ -243,8 +240,7 @@ class HtmlElement : public HtmlNode {
   //
   // The value, if non-null, is assumed to be unescaped.  See also
   // AddEscapedAttribute.
-  void AddAttribute(const HtmlName& name,
-                    const StringPiece& decoded_value,
+  void AddAttribute(const HtmlName& name, const StringPiece& decoded_value,
                     QuoteStyle quote_style);
   // As AddAttribute, but assumes value has been escaped for html output.
   void AddEscapedAttribute(const HtmlName& name,
@@ -339,25 +335,24 @@ class HtmlElement : public HtmlNode {
 
   // Render an element as a string for debugging.  This is not
   // intended as a fully legal serialization.
-  virtual GoogleString ToString() const;
+  GoogleString ToString() const override;
   void DebugPrint() const;
 
   int begin_line_number() const { return data_->begin_line_number_; }
   int end_line_number() const { return data_->end_line_number_; }
 
  protected:
-  virtual void SynthesizeEvents(const HtmlEventListIterator& iter,
-                                HtmlEventList* queue);
+  void SynthesizeEvents(const HtmlEventListIterator& iter,
+                        HtmlEventList* queue) override;
 
-  virtual HtmlEventListIterator begin() const { return data_->begin_; }
-  virtual HtmlEventListIterator end() const { return data_->end_; }
+  HtmlEventListIterator begin() const override { return data_->begin_; }
+  HtmlEventListIterator end() const override { return data_->end_; }
 
  private:
   // All of the data associated with an HtmlElement is indirected through this
   // class, so we can delete it on Flush after a CloseElement event.
   struct Data {
-    Data(const HtmlName& name,
-         const HtmlEventListIterator& begin,
+    Data(const HtmlName& name, const HtmlEventListIterator& begin,
          const HtmlEventListIterator& end);
     ~Data();
 
@@ -408,7 +403,7 @@ class HtmlElement : public HtmlNode {
   // is deleted.
   void FreeData() { data_.reset(NULL); }
 
-  scoped_ptr<Data> data_;
+  std::unique_ptr<Data> data_;
 
   DISALLOW_COPY_AND_ASSIGN(HtmlElement);
 };

@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_REWRITE_CONTEXT_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_REWRITE_CONTEXT_H_
@@ -25,6 +26,7 @@
 #include "net/instaweb/http/public/http_cache.h"
 #include "net/instaweb/rewriter/cached_result.pb.h"
 #include "net/instaweb/rewriter/input_info.pb.h"
+#include "net/instaweb/rewriter/public/csp_directive.h"
 #include "net/instaweb/rewriter/public/output_resource_kind.h"
 #include "net/instaweb/rewriter/public/resource.h"
 #include "net/instaweb/rewriter/public/resource_slot.h"
@@ -52,6 +54,8 @@ class RewriteOptions;
 class Statistics;
 class Variable;
 class FreshenMetadataUpdateManager;
+
+enum class RenderOp { kDontRender, kRenderOnlyCspWarning, kRender };
 
 // RewriteContext manages asynchronous rewriting of some n >= 1 resources (think
 // CSS, JS, or images) into m >= 0 improved versions (typically, n = m = 1).
@@ -167,7 +171,7 @@ class RewriteContext {
     bool useable_cache_content;
     bool is_stale_rewrite;
     InputInfoStarVector revalidate;
-    scoped_ptr<OutputPartitions> partitions;
+    std::unique_ptr<OutputPartitions> partitions;
   };
 
   // Used for LookupMetadataForOutputResource.
@@ -177,6 +181,7 @@ class RewriteContext {
     virtual ~CacheLookupResultCallback();
     virtual void Done(const GoogleString& cache_key,
                       CacheLookupResult* result) = 0;
+
    private:
     DISALLOW_COPY_AND_ASSIGN(CacheLookupResultCallback);
   };
@@ -247,8 +252,7 @@ class RewriteContext {
   //
   // True is returned if an asynchronous fetch got queued up.
   // If false, fetch->Done() will not be called.
-  bool Fetch(const OutputResourcePtr& output_resource,
-             AsyncFetch* fetch,
+  bool Fetch(const OutputResourcePtr& output_resource, AsyncFetch* fetch,
              MessageHandler* message_handler);
 
   // If true, we have determined that this job can't be rendered just
@@ -277,9 +281,7 @@ class RewriteContext {
   int num_nested() const { return nested_.size(); }
   RewriteContext* nested(int i) const { return nested_[i]; }
 
-  RewriteDriver* Driver() const {
-    return driver_;
-  }
+  RewriteDriver* Driver() const { return driver_; }
 
   // If called with true, forces a rewrite and re-generates the output.
   void set_force_rewrite(bool x) { force_rewrite_ = x; }
@@ -380,8 +382,7 @@ class RewriteContext {
   // TODO(jmarantz): check for resource completion from a different
   // thread (while we were waiting for resource fetches) when Rewrite
   // gets called.
-  virtual void Rewrite(int partition_index,
-                       CachedResult* partition,
+  virtual void Rewrite(int partition_index, CachedResult* partition,
                        const OutputResourcePtr& output) = 0;
 
   // Called by subclasses when an individual rewrite partition is
@@ -414,6 +415,16 @@ class RewriteContext {
   // do not require any nested RewriteContexts, it is OK to skip
   // overriding this method -- the empty default implementation is fine.
   virtual void Harvest();
+
+  // This method gives the context a chance to verify that rendering the
+  // result is consistent with the current document's (Content Security) Policy,
+  // which may be different than that of the page for which the result was first
+  // computed + cached. Most subclasses can just call AreOutputsAllowedByCsp(),
+  // with appropriate role.
+  virtual bool PolicyPermitsRendering() const = 0;
+
+  // Helper that checks that all output resources are OK with CSP as given role.
+  bool AreOutputsAllowedByCsp(CspDirective role) const;
 
   // Performs rendering activities that span multiple HTML slots.  For
   // example, in a filter that combines N slots to 1, N-1 of the HTML
@@ -466,8 +477,7 @@ class RewriteContext {
   // it isn't going to be modified in the method, ResourceContext is passed
   // as a const pointer.
   // TODO(morlovich): This seems to overlap with CacheKeySuffix.
-  virtual GoogleString UserAgentCacheKey(
-      const ResourceContext* context) const {
+  virtual GoogleString UserAgentCacheKey(const ResourceContext* context) const {
     return "";
   }
 
@@ -626,12 +636,9 @@ class RewriteContext {
   // the RewriteContext of appropriate type and the OutputResource already
   // created. Takes ownership of rewrite_context.
   static bool LookupMetadataForOutputResourceImpl(
-      OutputResourcePtr output_resource,
-      const GoogleUrl& gurl,
-      RewriteContext* rewrite_context,
-      RewriteDriver* driver,
-      GoogleString* error_out,
-      CacheLookupResultCallback* callback);
+      OutputResourcePtr output_resource, const GoogleUrl& gurl,
+      RewriteContext* rewrite_context, RewriteDriver* driver,
+      GoogleString* error_out, CacheLookupResultCallback* callback);
 
  private:
   class OutputCacheCallback;
@@ -653,10 +660,10 @@ class RewriteContext {
   // whether using the 0th input resource would be an acceptable substitute
   // for output when:
   enum FallbackCondition {
-    kFallbackDiscretional,   // trying to produce result quicker to improve
-                             // latency
-    kFallbackEmergency    // rewrite failed and output would otherwise not
-                          // be available
+    kFallbackDiscretional,  // trying to produce result quicker to improve
+                            // latency
+    kFallbackEmergency      // rewrite failed and output would otherwise not
+                            // be available
   };
 
   // Callback helper functions.
@@ -756,7 +763,7 @@ class RewriteContext {
   // particular, each slot must be updated with any rewritten
   // resources, before the successors can be run, independent of
   // whether the slots can be rendered into HTML.
-  void Propagate(bool render_slots);
+  void Propagate(RenderOp render_op);
 
   // With all resources loaded, the rewrite can now be done, writing:
   //    The metadata into the cache
@@ -805,7 +812,7 @@ class RewriteContext {
   // successors if applicable. This is the tail portion of
   // FinalizeRewriteForHtml that must be called even if we didn't
   // actually get as far as computing a partition_key_.
-  void RetireRewriteForHtml(bool permit_render);
+  void RetireRewriteForHtml(RenderOp permit_render);
 
   // Marks this job and any dependents slow as appropriate, notifying the
   // RewriteDriver of any changes.
@@ -835,10 +842,8 @@ class RewriteContext {
 
   // Sets up all the state needed for Fetch, but doesn't register this context
   // or actually start the rewrite process.
-  bool PrepareFetch(
-      const OutputResourcePtr& output_resource,
-      AsyncFetch* fetch,
-      MessageHandler* message_handler);
+  bool PrepareFetch(const OutputResourcePtr& output_resource, AsyncFetch* fetch,
+                    MessageHandler* message_handler);
 
   // Creates an output resource that corresponds to a full URL stored in
   // metadata cache.
@@ -902,24 +907,24 @@ class RewriteContext {
   // PSOL modules for debug.
   AtomicBool frozen_;
 
-  scoped_ptr<OutputPartitions> partitions_;
+  std::unique_ptr<OutputPartitions> partitions_;
   OutputResourceVector outputs_;
   int outstanding_fetches_;
   int outstanding_rewrites_;
-  scoped_ptr<ResourceContext> resource_context_;
+  std::unique_ptr<ResourceContext> resource_context_;
   GoogleString partition_key_;
 
   UrlSegmentEncoder default_encoder_;
 
   // Lock guarding output partitioning and rewriting.  Lazily initialized by
   // Lock(), unlocked on destruction or the end of Finish().
-  scoped_ptr<NamedLock> lock_;
+  std::unique_ptr<NamedLock> lock_;
 
   // When this rewrite object is created on behalf of a fetch, we must
   // keep the response_writer, request_headers, and callback in the
   // FetchContext so they can be used once the inputs are available.
   class FetchContext;
-  scoped_ptr<FetchContext> fetch_;
+  std::unique_ptr<FetchContext> fetch_;
 
   // Track the RewriteContexts that must be run after this one because they
   // share a slot.
@@ -1033,7 +1038,7 @@ class RewriteContext {
   // Transaction context from CentralController, if
   // ScheduleViaCentralController() returned true. Communicates back to
   // CentralController on destruction, or when explicitly invoked.
-  scoped_ptr<ScheduleRewriteContext> schedule_rewrite_context_;
+  std::unique_ptr<ScheduleRewriteContext> schedule_rewrite_context_;
 
   Variable* const num_rewrites_abandoned_for_lock_contention_;
   DISALLOW_COPY_AND_ASSIGN(RewriteContext);

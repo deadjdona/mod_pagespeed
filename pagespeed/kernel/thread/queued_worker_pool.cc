@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/thread/queued_worker_pool.h"
 
@@ -37,7 +38,7 @@ namespace net_instaweb {
 namespace {
 
 inline void UpdateWaveform(Waveform* queue_size, int delta) {
-  if ((queue_size != NULL) && (delta != 0)) {
+  if ((queue_size != nullptr) && (delta != 0)) {
     queue_size->AddDelta(delta);
   }
 }
@@ -46,13 +47,14 @@ const size_t kUnboundedQueue = 0;
 
 }  // namespace
 
-QueuedWorkerPool::QueuedWorkerPool(
-    int max_workers, StringPiece thread_name_base, ThreadSystem* thread_system)
+QueuedWorkerPool::QueuedWorkerPool(int max_workers,
+                                   StringPiece thread_name_base,
+                                   ThreadSystem* thread_system)
     : thread_system_(thread_system),
       mutex_(thread_system_->NewMutex()),
       max_workers_(max_workers),
       shutdown_(false),
-      queue_size_(NULL),
+      queue_size_(nullptr),
       load_shedding_threshold_(kNoLoadShedding) {
   thread_name_base.CopyToString(&thread_name_base_);
 }
@@ -120,7 +122,7 @@ void QueuedWorkerPool::WaitForShutDownComplete() {
   // Function::set_quit_requested.  For now, we just complete the
   // currently running functions and then shut down.
   while (true) {
-    QueuedWorker* worker = NULL;
+    QueuedWorker* worker = nullptr;
     {
       ScopedMutex lock(mutex_.get());
       if (active_workers_.empty()) {
@@ -148,7 +150,7 @@ void QueuedWorkerPool::WaitForShutDownComplete() {
 // candidate sequence is passed into this method, but we can start
 // looking at a new sequence when the passed-in one is exhausted
 void QueuedWorkerPool::Run(Sequence* sequence, QueuedWorker* worker) {
-  while (sequence != NULL) {
+  while (sequence != nullptr) {
     // This is a little unfair but we will continue to pull tasks from
     // the same sequence and run them until the sequence is exhausted.  This
     // avoids locking the pool's central mutex every time we want to
@@ -166,7 +168,7 @@ void QueuedWorkerPool::Run(Sequence* sequence, QueuedWorker* worker) {
 
 QueuedWorkerPool::Sequence* QueuedWorkerPool::AssignWorkerToNextSequence(
     QueuedWorker* worker) {
-  Sequence* sequence = NULL;
+  Sequence* sequence = nullptr;
   ScopedMutex lock(mutex_.get());
   if (!shutdown_) {
     if (queued_sequences_.empty()) {
@@ -182,8 +184,8 @@ QueuedWorkerPool::Sequence* QueuedWorkerPool::AssignWorkerToNextSequence(
 }
 
 void QueuedWorkerPool::QueueSequence(Sequence* sequence) {
-  QueuedWorker* worker = NULL;
-  Sequence* drop_sequence = NULL;
+  QueuedWorker* worker = nullptr;
+  Sequence* drop_sequence = nullptr;
   {
     ScopedMutex lock(mutex_.get());
     if (available_workers_.empty()) {
@@ -217,16 +219,16 @@ void QueuedWorkerPool::QueueSequence(Sequence* sequence) {
     }
   }
 
-  if (drop_sequence != NULL) {
+  if (drop_sequence != nullptr) {
     drop_sequence->Cancel();
   }
 
   // Run the worker without holding the Pool lock.
-  if (worker != NULL) {
+  if (worker != nullptr) {
     worker->RunInWorkThread(
         new MemberFunction2<QueuedWorkerPool, QueuedWorkerPool::Sequence*,
-                            QueuedWorker*>(
-            &QueuedWorkerPool::Run, this, sequence, worker));
+                            QueuedWorker*>(&QueuedWorkerPool::Run, this,
+                                           sequence, worker));
   }
 }
 
@@ -263,7 +265,7 @@ void QueuedWorkerPool::SetLoadSheddingThreshold(int x) {
 
 QueuedWorkerPool::Sequence* QueuedWorkerPool::NewSequence() {
   ScopedMutex lock(mutex_.get());
-  Sequence* sequence = NULL;
+  Sequence* sequence = nullptr;
   if (!shutdown_) {
     if (free_sequences_.empty()) {
       sequence = new Sequence(thread_system_, this);
@@ -302,7 +304,7 @@ QueuedWorkerPool::Sequence::Sequence(ThreadSystem* thread_system,
     : sequence_mutex_(thread_system->NewMutex()),
       pool_(pool),
       termination_condvar_(sequence_mutex_->NewCondvar()),
-      queue_size_(NULL),
+      queue_size_(nullptr),
       max_queue_size_(kUnboundedQueue) {
   Reset();
 }
@@ -319,8 +321,7 @@ QueuedWorkerPool::Sequence::~Sequence() {
   DCHECK(work_queue_.empty());
 }
 
-QueuedWorkerPool::Sequence::AddFunction::~AddFunction() {
-}
+QueuedWorkerPool::Sequence::AddFunction::~AddFunction() {}
 
 bool QueuedWorkerPool::Sequence::InitiateShutDown() {
   ScopedMutex lock(sequence_mutex_.get());
@@ -333,7 +334,7 @@ void QueuedWorkerPool::Sequence::WaitForShutDown() {
   {
     ScopedMutex lock(sequence_mutex_.get());
     shutdown_ = true;
-    pool_ = NULL;
+    pool_ = nullptr;
 
     while (active_) {
       // We use a TimedWait rather than a Wait so that we don't deadlock if
@@ -424,8 +425,8 @@ void QueuedWorkerPool::Sequence::CancelPendingFunctions() {
 }
 
 Function* QueuedWorkerPool::Sequence::NextFunction() {
-  Function* function = NULL;
-  QueuedWorkerPool* release_to_pool = NULL;
+  Function* function = nullptr;
+  QueuedWorkerPool* release_to_pool = nullptr;
   int queue_size_delta = 0;
   {
     ScopedMutex lock(sequence_mutex_.get());
@@ -458,7 +459,7 @@ Function* QueuedWorkerPool::Sequence::NextFunction() {
       --queue_size_delta;
     }
   }
-  if (release_to_pool != NULL) {
+  if (release_to_pool != nullptr) {
     // If the entire pool is in the process of shutting down when
     // NextFunction is called, we don't need to add this to the
     // free list; the pool will directly delete all sequences from

@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/domain_rewrite_filter.h"
 
@@ -56,7 +57,7 @@ const char DomainRewriteFilter::kStickyRedirectHeader[] =
     "X-PSA-Sticky-Redirect";
 
 DomainRewriteFilter::DomainRewriteFilter(RewriteDriver* rewrite_driver,
-                                         Statistics *stats)
+                                         Statistics* stats)
     : CommonFilter(rewrite_driver),
       rewrite_count_(stats->GetVariable(kDomainRewrites)) {}
 
@@ -77,7 +78,7 @@ void DomainRewriteFilter::UpdateDomainHeaders(
     const RewriteOptions* options, ResponseHeaders* headers) {
   // IframeFetcher panics when it sees a UA that can't do iframes well,
   // and throws a redirect.  This filter needs to respect that.
-  if ((headers == NULL) || headers->Has(kStickyRedirectHeader)) {
+  if ((headers == nullptr) || headers->Has(kStickyRedirectHeader)) {
     return;
   }
 
@@ -99,16 +100,13 @@ void DomainRewriteFilter::UpdateDomainHeaders(
 }
 
 void DomainRewriteFilter::TryUpdateOneHttpDomainHeader(
-    const GoogleUrl& base_url,
-    const ServerContext* server_context,
-    const RewriteOptions* options,
-    StringPiece name,
-    ResponseHeaders* headers) {
+    const GoogleUrl& base_url, const ServerContext* server_context,
+    const RewriteOptions* options, StringPiece name, ResponseHeaders* headers) {
   const char* val = headers->Lookup1(name);
-  if (val != NULL) {
+  if (val != nullptr) {
     GoogleString new_val;
-    if (UpdateOneDomainHeader(kHttp, base_url, server_context, options,
-                              name, val, &new_val)) {
+    if (UpdateOneDomainHeader(kHttp, base_url, server_context, options, name,
+                              val, &new_val)) {
       headers->Replace(name, new_val);
     }
   }
@@ -126,8 +124,7 @@ bool DomainRewriteFilter::UpdateOneDomainHeader(
   if (src == kHttp && StringCaseEqual(name, HttpAttributes::kLocation)) {
     DomainRewriteFilter::RewriteResult status = Rewrite(
         value_in, base_url, server_context, options,
-        false /* !apply_sharding */, true /* apply_domain_suffix */,
-        out);
+        false /* !apply_sharding */, true /* apply_domain_suffix */, out);
     return (status == kRewroteDomain);
   }
 
@@ -136,9 +133,8 @@ bool DomainRewriteFilter::UpdateOneDomainHeader(
     if (ParseRefreshContent(value_in, &before, &url, &after)) {
       GoogleString rewritten_url;
       DomainRewriteFilter::RewriteResult status = Rewrite(
-          url, base_url, server_context, options,
-          false /* !apply_sharding */, true /* apply_domain_suffix */,
-          &rewritten_url);
+          url, base_url, server_context, options, false /* !apply_sharding */,
+          true /* apply_domain_suffix */, &rewritten_url);
       if (status == kRewroteDomain) {
         // We quote the URL with ". This is because the double-quote
         // isn't a reserved character in URLs, so %-encoding to encode any
@@ -155,8 +151,8 @@ bool DomainRewriteFilter::UpdateOneDomainHeader(
   }
 
   if (StringCaseEqual(name, HttpAttributes::kSetCookie)) {
-    return UpdateSetCookieHeader(base_url, server_context, options,
-                                 value_in, out);
+    return UpdateSetCookieHeader(base_url, server_context, options, value_in,
+                                 out);
   }
 
   return false;
@@ -221,10 +217,10 @@ bool DomainRewriteFilter::UpdateSetCookieHeader(
   }
 
   GoogleString rewritten_url;
-  DomainRewriteFilter::RewriteResult status = Rewrite(
-      StrCat(domain_and_scheme, path), base_url, server_context, options,
-      false /* !apply_sharding */, true /* apply_domain_suffix*/,
-      &rewritten_url);
+  DomainRewriteFilter::RewriteResult status =
+      Rewrite(StrCat(domain_and_scheme, path), base_url, server_context,
+              options, false /* !apply_sharding */,
+              true /* apply_domain_suffix*/, &rewritten_url);
 
   if (status != kRewroteDomain) {
     return false;
@@ -320,8 +316,8 @@ bool DomainRewriteFilter::ParseRefreshContent(StringPiece input,
   if (quote_pos != StringPiece::npos) {
     *url = parse.substr(0, quote_pos);
     const char* after_start = url->data() + url->length() + 1;
-    *after = StringPiece(after_start,
-                        input.data() + input.length() - after_start);
+    *after =
+        StringPiece(after_start, input.data() + input.length() - after_start);
   } else {
     *url = parse;
     // Nothing after.
@@ -333,8 +329,7 @@ bool DomainRewriteFilter::ParseRefreshContent(StringPiece input,
 }
 
 void DomainRewriteFilter::ParseSetCookieAttributes(
-    StringPiece input,
-    StringPiece* cookie_string,
+    StringPiece input, StringPiece* cookie_string,
     SetCookieAttributes* attributes) {
   StringPiece parse = input;
   attributes->clear();
@@ -402,34 +397,33 @@ void DomainRewriteFilter::StartElementImpl(HtmlElement* element) {
   }
   resource_tag_scanner::UrlCategoryVector attributes;
   resource_tag_scanner::ScanElement(element, options, &attributes);
-  bool element_is_embed_or_frame_or_iframe = (
-      element->keyword() == HtmlName::kEmbed ||
-      element->keyword() == HtmlName::kFrame ||
-      element->keyword() == HtmlName::kIframe);
+  bool element_is_embed_or_frame_or_iframe =
+      (element->keyword() == HtmlName::kEmbed ||
+       element->keyword() == HtmlName::kFrame ||
+       element->keyword() == HtmlName::kIframe);
   for (int i = 0, n = attributes.size(); i < n; ++i) {
     // Only rewrite attributes that are resource-tags.  If hyperlinks
     // is on that's fine too.
-    bool is_resource =
-        (attributes[i].category == semantic_type::kImage ||
-         attributes[i].category == semantic_type::kScript ||
-         attributes[i].category == semantic_type::kStylesheet);
+    bool is_resource = (attributes[i].category == semantic_type::kImage ||
+                        attributes[i].category == semantic_type::kScript ||
+                        attributes[i].category == semantic_type::kStylesheet);
     if (options->domain_rewrite_hyperlinks() || is_resource) {
       StringPiece val(attributes[i].url->DecodedValueOrNull());
       if (!val.empty()) {
         GoogleString rewritten_val;
         // Don't shard hyperlinks, prefetch, embeds, frames, or iframes.
-        bool apply_sharding = (
-            !element_is_embed_or_frame_or_iframe &&
-            attributes[i].category != semantic_type::kHyperlink &&
-            attributes[i].category != semantic_type::kPrefetch);
+        bool apply_sharding =
+            (!element_is_embed_or_frame_or_iframe &&
+             attributes[i].category != semantic_type::kHyperlink &&
+             attributes[i].category != semantic_type::kPrefetch);
         // TODO(jmarantz): Shouldn't we apply the domain suffix in exactly the
         // same circumstances as we apply any other domain rewrite?
         bool apply_domain_suffix =
-              (attributes[i].category == semantic_type::kHyperlink ||
-               is_resource);
+            (attributes[i].category == semantic_type::kHyperlink ||
+             is_resource);
         const GoogleUrl& base_url = driver()->base_url();
-        if (Rewrite(val, base_url, driver()->server_context(),
-                    options, apply_sharding, apply_domain_suffix,
+        if (Rewrite(val, base_url, driver()->server_context(), options,
+                    apply_sharding, apply_domain_suffix,
                     &rewritten_val) == kRewroteDomain) {
           attributes[i].url->SetValue(rewritten_val);
           rewrite_count_->Add(1);
@@ -443,17 +437,14 @@ void DomainRewriteFilter::StartElementImpl(HtmlElement* element) {
     const char* equiv = element->AttributeValue(HtmlName::kHttpEquiv);
     HtmlElement::Attribute* content_attr =
         element->FindAttribute(HtmlName::kContent);
-    const char* content = (content_attr != NULL) ?
-                              content_attr->DecodedValueOrNull() : NULL;
+    const char* content = (content_attr != nullptr)
+                              ? content_attr->DecodedValueOrNull()
+                              : nullptr;
     GoogleString out;
-    if (equiv != NULL && content != NULL &&
-        UpdateOneDomainHeader(kMetaHttpEquiv,
-                              driver()->base_url(),
-                              driver()->server_context(),
-                              options,
-                              equiv,
-                              content,
-                              &out)) {
+    if (equiv != nullptr && content != nullptr &&
+        UpdateOneDomainHeader(kMetaHttpEquiv, driver()->base_url(),
+                              driver()->server_context(), options, equiv,
+                              content, &out)) {
       content_attr->SetValue(out);
     }
   }
@@ -509,8 +500,8 @@ DomainRewriteFilter::RewriteResult DomainRewriteFilter::Rewrite(
   // framework to do this.
   GoogleString mapped_domain_name;
   GoogleUrl resolved_request;
-  if (!lawyer->MapRequestToDomain(base_url, url_to_rewrite,
-                                  &mapped_domain_name, &resolved_request,
+  if (!lawyer->MapRequestToDomain(base_url, url_to_rewrite, &mapped_domain_name,
+                                  &resolved_request,
                                   server_context->message_handler())) {
     // Even though domain is unchanged, we need to store absolute URL in
     // rewritten_url.
@@ -522,12 +513,12 @@ DomainRewriteFilter::RewriteResult DomainRewriteFilter::Rewrite(
   GoogleString sharded_domain;
   GoogleString domain = StrCat(resolved_request.Origin(), "/");
   resolved_request.Spec().CopyToString(rewritten_url);
-  uint32 int_hash = HashString<CasePreserve, uint32>(
-      rewritten_url->data(), rewritten_url->size());
+  uint32 int_hash = HashString<CasePreserve, uint32>(rewritten_url->data(),
+                                                     rewritten_url->size());
   if (apply_sharding &&
       lawyer->ShardDomain(domain, int_hash, &sharded_domain)) {
-    *rewritten_url = StrCat(sharded_domain,
-                            resolved_request.PathAndLeaf().substr(1));
+    *rewritten_url =
+        StrCat(sharded_domain, resolved_request.PathAndLeaf().substr(1));
   }
 
   // Return true if really changed the url with this rewrite.
@@ -559,14 +550,13 @@ void DomainRewriteFilter::EndDocument() {
     }
   }
 
-  HtmlElement* script_node = driver()->NewElement(NULL, HtmlName::kScript);
+  HtmlElement* script_node = driver()->NewElement(nullptr, HtmlName::kScript);
   InsertNodeAtBodyEnd(script_node);
   StaticAssetManager* static_asset_manager =
       driver()->server_context()->static_asset_manager();
   GoogleString js =
       StrCat(static_asset_manager->GetAsset(
-                 StaticAssetEnum::CLIENT_DOMAIN_REWRITER,
-                 driver()->options()),
+                 StaticAssetEnum::CLIENT_DOMAIN_REWRITER, driver()->options()),
              "pagespeed.clientDomainRewriterInit([",
              comma_separated_from_domains, "]);");
   AddJsToElement(js, script_node);

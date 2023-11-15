@@ -1,20 +1,21 @@
 /*
- * Copyright 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/cache/purge_context.h"
 
@@ -25,8 +26,8 @@
 #include "pagespeed/kernel/base/file_system.h"
 #include "pagespeed/kernel/base/function.h"
 #include "pagespeed/kernel/base/message_handler.h"
-#include "pagespeed/kernel/base/null_message_handler.h"
 #include "pagespeed/kernel/base/named_lock_manager.h"
+#include "pagespeed/kernel/base/null_message_handler.h"
 #include "pagespeed/kernel/base/statistics.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
@@ -47,13 +48,13 @@ const int kMaxContentionRetries = 2;
 
 }  // namespace
 
-const char PurgeContext::kCancellations[]        = "purge_cancellations";
-const char PurgeContext::kContentions[]          = "purge_contentions";
-const char PurgeContext::kFileParseFailures[]    = "purge_file_parse_failures";
-const char PurgeContext::kFileStats[]            = "purge_file_stats";
-const char PurgeContext::kFileWriteFailures[]    = "purge_file_write_failures";
-const char PurgeContext::kFileWrites[]           = "purge_file_writes";
-const char PurgeContext::kPurgeIndex[]           = "purge_index";
+const char PurgeContext::kCancellations[] = "purge_cancellations";
+const char PurgeContext::kContentions[] = "purge_contentions";
+const char PurgeContext::kFileParseFailures[] = "purge_file_parse_failures";
+const char PurgeContext::kFileStats[] = "purge_file_stats";
+const char PurgeContext::kFileWriteFailures[] = "purge_file_write_failures";
+const char PurgeContext::kFileWrites[] = "purge_file_writes";
+const char PurgeContext::kPurgeIndex[] = "purge_index";
 
 // TODO(jmarantz): make it possible to avoid showing this implementation detail
 // in the statistics page.
@@ -68,12 +69,9 @@ class BackupUpDownCounter : public UpDownCounter {
  public:
   // Takes ownership of mutex.
   BackupUpDownCounter(UpDownCounter* counter, AbstractMutex* mutex)
-      : counter_(counter),
-        mutex_(mutex),
-        local_counter_(0) {
-  }
+      : counter_(counter), mutex_(mutex), local_counter_(0) {}
 
-  virtual int64 Get() const {
+  int64 Get() const override {
     // Don't take the lock for local_counter unless we have actually set some
     // value in the past, yet we can't retrieve it from the real UpDownCounter.
     bool was_set = was_set_.value();
@@ -85,9 +83,9 @@ class BackupUpDownCounter : public UpDownCounter {
     return val;
   }
 
-  virtual StringPiece GetName() const { return counter_->GetName(); }
+  StringPiece GetName() const override { return counter_->GetName(); }
 
-  virtual void Set(int64 value) {
+  void Set(int64 value) override {
     counter_->Set(value);
     {
       ScopedMutex lock(mutex_.get());
@@ -96,29 +94,25 @@ class BackupUpDownCounter : public UpDownCounter {
     }
   }
 
-  virtual int64 AddHelper(int64 delta) {
+  int64 AddHelper(int64 delta) override {
     LOG(DFATAL) << "AddHelper is not used in PurgeContext";
     return 0;
   }
 
  private:
   UpDownCounter* counter_;
-  scoped_ptr<AbstractMutex> mutex_;
+  std::unique_ptr<AbstractMutex> mutex_;
   int64 local_counter_ GUARDED_BY(mutex_);
   AtomicBool was_set_;
 };
 
 }  // namespace
 
-PurgeContext::PurgeContext(StringPiece filename,
-                           FileSystem* file_system,
-                           Timer* timer,
-                           int max_bytes_in_cache,
+PurgeContext::PurgeContext(StringPiece filename, FileSystem* file_system,
+                           Timer* timer, int max_bytes_in_cache,
                            ThreadSystem* thread_system,
-                           NamedLockManager* lock_manager,
-                           Scheduler* scheduler,
-                           Statistics* statistics,
-                           MessageHandler* handler)
+                           NamedLockManager* lock_manager, Scheduler* scheduler,
+                           Statistics* statistics, MessageHandler* handler)
     : filename_(filename.data(), filename.size()),
       interprocess_lock_(lock_manager->CreateNamedLock(LockName())),
       file_system_(file_system),
@@ -148,8 +142,7 @@ PurgeContext::PurgeContext(StringPiece filename,
   purge_set_.MakeWriteable()->set_max_size(max_bytes_in_cache_);
 }
 
-PurgeContext::~PurgeContext() {
-}
+PurgeContext::~PurgeContext() {}
 
 void PurgeContext::InitStats(Statistics* statistics) {
   statistics->AddVariable(kCancellations);
@@ -162,8 +155,9 @@ void PurgeContext::InitStats(Statistics* statistics) {
   statistics->AddUpDownCounter(kPurgePollTimestampMs);
 }
 
-bool PurgeContext::ParseAndValidateTimestamp(
-    StringPiece time_string, int64 now_ms, int64* timestamp_ms) {
+bool PurgeContext::ParseAndValidateTimestamp(StringPiece time_string,
+                                             int64 now_ms,
+                                             int64* timestamp_ms) {
   if (!StringToInt64(time_string, timestamp_ms)) {
     message_handler_->Info(filename_.c_str(), 1,
                            "Invalidation timestamp (%s) not parsed as int64",
@@ -174,10 +168,9 @@ bool PurgeContext::ParseAndValidateTimestamp(
               (*timestamp_ms > now_ms + PurgeSet::kClockSkewAllowanceMs))) {
     GoogleString converted_time_string;
     ConvertTimeToString(*timestamp_ms, &converted_time_string);
-    message_handler_->Info(filename_.c_str(), 1,
-                           "Invalidation timestamp (%s) in the future: %s",
-                           time_string.as_string().c_str(),
-                           converted_time_string.c_str());
+    message_handler_->Info(
+        filename_.c_str(), 1, "Invalidation timestamp (%s) in the future: %s",
+        time_string.as_string().c_str(), converted_time_string.c_str());
     return false;
   }
   return true;
@@ -217,8 +210,8 @@ void PurgeContext::ReadPurgeFile(PurgeSet* purges_from_file) {
   // The first line should contain the global invalidation timestamp,
   // though we'll just silently leave the invalidation timestamp unchanged
   // if the file was empty.
-  if (lines.empty() || !ParseAndValidateTimestamp(lines[0], now_ms,
-                                                  &timestamp_ms)) {
+  if (lines.empty() ||
+      !ParseAndValidateTimestamp(lines[0], now_ms, &timestamp_ms)) {
     file_parse_failures_->Add(1);
     return;
   }
@@ -250,9 +243,9 @@ void PurgeContext::ReadPurgeFile(PurgeSet* purges_from_file) {
 // merge in whatever results they had written.
 bool PurgeContext::Verify(const GoogleString& expected_purge_file_contents) {
   GoogleString verify;
-  return (file_system_->ReadFile(filename_.c_str(), &verify,
-                                 message_handler_) &&
-          (verify == expected_purge_file_contents));
+  return (
+      file_system_->ReadFile(filename_.c_str(), &verify, message_handler_) &&
+      (verify == expected_purge_file_contents));
 }
 
 void PurgeContext::UpdateCachePurgeFile() {
@@ -275,11 +268,11 @@ void PurgeContext::UpdateCachePurgeFile() {
   // also grab mutex_, so we'll need to collect the serizlized
   // buffer and callback-list at the same time for atomicity.
   GoogleString buffer, verify;
-  ReadPurgeFile(&purges_from_file);                                   // read
-  ModifyPurgeSet(&purges_from_file, &buffer, &callbacks,
-                 &return_purges, &failures);                          // modify
-  if (!WritePurgeFile(buffer) ||                                      // write
-      !Verify(buffer)) {                                              // verify
+  ReadPurgeFile(&purges_from_file);  // read
+  ModifyPurgeSet(&purges_from_file, &buffer, &callbacks, &return_purges,
+                 &failures);      // modify
+  if (!WritePurgeFile(buffer) ||  // write
+      !Verify(buffer)) {          // verify
     contentions_->Add(1);
     success = false;
     HandleWriteFailure(failures, &callbacks, &return_purges, &lock_and_update);
@@ -353,8 +346,7 @@ void PurgeContext::HandleWriteFailure(int failures,
 void PurgeContext::ModifyPurgeSet(PurgeSet* purges_from_file,
                                   GoogleString* buffer,
                                   PurgeCallbackVector* return_callbacks,
-                                  PurgeSet* return_purges,
-                                  int* failures) {
+                                  PurgeSet* return_purges, int* failures) {
   // Note that while were are reading the file, another Purge might
   // arrive in pending_purges_, protected by mutex_.  We avoid holding
   // the that mutex when reading/writing the file as that might create
@@ -380,11 +372,12 @@ void PurgeContext::ModifyPurgeSet(PurgeSet* purges_from_file,
 
   // Collect the write-buffer from the aggregated PurgeSet while we
   // have mutex_ held.
-  StrAppend(buffer, Integer64ToString(
-      purges_from_file->global_invalidation_timestamp_ms()),
-            "\n");
+  StrAppend(
+      buffer,
+      Integer64ToString(purges_from_file->global_invalidation_timestamp_ms()),
+      "\n");
   for (PurgeSet::Iterator p = purges_from_file->Begin(),
-           e = purges_from_file->End();
+                          e = purges_from_file->End();
        p != e; ++p) {
     StrAppend(buffer, Integer64ToString(p.Value()), " ", p.Key(), "\n");
   }
@@ -440,23 +433,21 @@ void PurgeContext::WaitForTimerAndGrabLock() {
   } else {
     int64 alarm_time_us =
         timer_->NowUs() + request_batching_delay_ms_ * Timer::kMsUs;
-    scheduler_->AddAlarmAtUs(alarm_time_us,
-                             MakeFunction(this,
-                                          &PurgeContext::GrabLockAndUpdate,
-                                          &PurgeContext::CancelCachePurgeFile));
+    scheduler_->AddAlarmAtUs(
+        alarm_time_us, MakeFunction(this, &PurgeContext::GrabLockAndUpdate,
+                                    &PurgeContext::CancelCachePurgeFile));
   }
 }
 
 void PurgeContext::GrabLockAndUpdate() {
   interprocess_lock_->LockTimedWaitStealOld(
       kTimeoutMs, kStealLockAfterMs,
-      MakeFunction(this,
-                   &PurgeContext::UpdateCachePurgeFile,
+      MakeFunction(this, &PurgeContext::UpdateCachePurgeFile,
                    &PurgeContext::CancelCachePurgeFile));
 }
 
-void PurgeContext::SetCachePurgeGlobalTimestampMs(
-    int64 timestamp_ms, PurgeCallback* callback) {
+void PurgeContext::SetCachePurgeGlobalTimestampMs(int64 timestamp_ms,
+                                                  PurgeCallback* callback) {
   bool grab_lock = false;
   {
     ScopedMutex lock(mutex_.get());
@@ -499,8 +490,7 @@ void PurgeContext::PollFileSystem() {
   int64 global_purge_index = purge_index_->Get();
   mutex_->Lock();
   bool needs_update = (local_purge_index_ < global_purge_index);
-  if (!reading_ &&
-      (needs_update || (delta_ms >= kCheckCacheIntervalMs))) {
+  if (!reading_ && (needs_update || (delta_ms >= kCheckCacheIntervalMs))) {
     if (needs_update) {
       local_purge_index_ = global_purge_index;
     }
@@ -538,7 +528,7 @@ void PurgeContext::ReadFileAndCallCallbackIfChanged(bool needs_update) {
         purge_index_->Add(1);
       }
       purge_set_ = purges_from_file;
-      if (update_callback_ != NULL) {
+      if (update_callback_ != nullptr) {
         // We don't want to call the update callback while holding the
         // lock.  Also note that even though we will release the lock
         // before calling the callback, purge_set_ will not be mutated

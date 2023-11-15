@@ -1,48 +1,44 @@
-// Copyright 2011 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: jmaessen@google.com (Jan Maessen)
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 #include "pagespeed/kernel/thread/pthread_condvar.h"
 
 #include <pthread.h>
 #include <sys/time.h>
+
 #include <cerrno>
 #include <ctime>
 
 #include "base/logging.h"
 #include "pagespeed/kernel/base/basictypes.h"
-#include "pagespeed/kernel/thread/pthread_mutex.h"
 #include "pagespeed/kernel/base/timer.h"
+#include "pagespeed/kernel/thread/pthread_mutex.h"
 
 namespace net_instaweb {
 
-PthreadCondvar::~PthreadCondvar() {
-  pthread_cond_destroy(&condvar_);
-}
+PthreadCondvar::~PthreadCondvar() { pthread_cond_destroy(&condvar_); }
 
-void PthreadCondvar::Signal() {
-  pthread_cond_signal(&condvar_);
-}
+void PthreadCondvar::Signal() { pthread_cond_signal(&condvar_); }
 
-void PthreadCondvar::Broadcast() {
-  pthread_cond_broadcast(&condvar_);
-}
+void PthreadCondvar::Broadcast() { pthread_cond_broadcast(&condvar_); }
 
-void PthreadCondvar::Wait() {
-  pthread_cond_wait(&condvar_, &mutex_->mutex_);
-}
+void PthreadCondvar::Wait() { pthread_cond_wait(&condvar_, &mutex_->mutex_); }
 
 void PthreadCondvar::TimedWait(int64 timeout_ms) {
   const int64 kMsNs = Timer::kSecondNs / Timer::kSecondMs;
@@ -55,7 +51,7 @@ void PthreadCondvar::TimedWait(int64 timeout_ms) {
   // Carrying ns to s as appropriate.  As morlovich notes, we
   // get *really close* to overflowing a 32-bit tv_nsec here,
   // so this code should be modified with caution.
-  if (gettimeofday(&current_time, NULL) != 0) {
+  if (gettimeofday(&current_time, nullptr) != 0) {
     LOG(FATAL) << "Could not determine time of day";
   }
   timeout.tv_nsec = current_time.tv_usec * 1000 + timeout_ms * kMsNs;
@@ -67,7 +63,8 @@ void PthreadCondvar::TimedWait(int64 timeout_ms) {
 }
 
 void PthreadCondvar::Init() {
-  while (pthread_cond_init(&condvar_, NULL) == EAGAIN) { }
+  while (pthread_cond_init(&condvar_, nullptr) == EAGAIN) {
+  }
 }
 
 }  // namespace net_instaweb

@@ -1,20 +1,21 @@
 /*
- * Copyright 2015 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "pagespeed/kernel/util/mem_lock.h"
 
@@ -29,8 +30,7 @@
 namespace net_instaweb {
 
 MemLock::MemLock(int64 sequence, MemLockState* lock_state)
-    : lock_state_(lock_state),
-      sequence_(sequence) {
+    : lock_state_(lock_state), sequence_(sequence) {
   Clear();
 }
 
@@ -45,7 +45,7 @@ MemLock::~MemLock() {
 
 void MemLock::Clear() {
   DCHECK(!lock_state_->IsHeldInOrderedSet(this));
-  callback_ = NULL;
+  callback_ = nullptr;
   cancel_time_ms_ = 0;
   steal_ms_ = 0;
   wakeup_time_ms_ = kNotPending;
@@ -69,7 +69,7 @@ void MemLock::LockTimedWaitStealOld(int64 wait_ms, int64 steal_ms,
     callback->CallRun();
   } else {
     DCHECK(!lock_state_->IsHeldInOrderedSet(this));
-    CHECK(callback_ == NULL);
+    CHECK(callback_ == nullptr);
     cancel_time_ms_ = lock_state_->manager()->timer()->NowMs() + wait_ms;
     steal_ms_ = steal_ms;
     callback_ = callback;
@@ -86,9 +86,7 @@ void MemLock::Wakeup() {
   }
 }
 
-GoogleString MemLock::name() const {
-  return lock_state_->name();
-}
+GoogleString MemLock::name() const { return lock_state_->name(); }
 
 void MemLock::CalculateWakeupTime(int64 held_lock_grant_time_ms) {
   DCHECK(!lock_state_->IsHeldInOrderedSet(this));

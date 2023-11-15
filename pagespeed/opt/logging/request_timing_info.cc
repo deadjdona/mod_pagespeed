@@ -1,20 +1,21 @@
 /*
- * Copyright 2012 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: piatek@google.com (Michael Piatek)
 
 #include "pagespeed/opt/logging/request_timing_info.h"
 
@@ -36,7 +37,6 @@ bool SetValueIfGEZero(int64 in, int64* out) {
 }
 
 }  // namespace
-
 
 RequestTimingInfo::RequestTimingInfo(Timer* timer, AbstractMutex* mutex)
     : timer_(timer),
@@ -118,16 +118,14 @@ bool RequestTimingInfo::GetProcessingElapsedMs(
   return true;
 }
 
-bool RequestTimingInfo::GetTimeToStartFetchMs(
-    int64* elapsed_ms) const {
+bool RequestTimingInfo::GetTimeToStartFetchMs(int64* elapsed_ms) const {
   ScopedMutex l(mu_);
   return GetTimeFromStart(fetch_start_ts_ms_, elapsed_ms);
 }
 
-bool RequestTimingInfo::GetFetchHeaderLatencyMs(
-    int64* elapsed_ms) const {
+bool RequestTimingInfo::GetFetchHeaderLatencyMs(int64* elapsed_ms) const {
   ScopedMutex l(mu_);
-  if (fetch_header_ts_ms_ < 0 || fetch_start_ts_ms_< 0) {
+  if (fetch_header_ts_ms_ < 0 || fetch_start_ts_ms_ < 0) {
     return false;
   }
 
@@ -161,7 +159,7 @@ bool RequestTimingInfo::GetTimeToFirstByte(int64* latency_ms) const {
 }
 
 int64 RequestTimingInfo::NowMs() const {
-  if (timer_ == NULL) {
+  if (timer_ == nullptr) {
     return 0;
   }
 
@@ -173,8 +171,7 @@ void RequestTimingInfo::SetToNow(int64* ts) const {
   *ts = NowMs();
 }
 
-bool RequestTimingInfo::GetTimeFromStart(
-    int64 ts_ms, int64* elapsed_ms) const {
+bool RequestTimingInfo::GetTimeFromStart(int64 ts_ms, int64* elapsed_ms) const {
   if (ts_ms < 0 || start_ts_ms_ < 0) {
     return false;
   }
@@ -183,14 +180,12 @@ bool RequestTimingInfo::GetTimeFromStart(
   return true;
 }
 
-bool RequestTimingInfo::GetHTTPCacheLatencyMs(
-    int64* latency_ms) const {
+bool RequestTimingInfo::GetHTTPCacheLatencyMs(int64* latency_ms) const {
   ScopedMutex l(mu_);
   return SetValueIfGEZero(http_cache_latency_ms_, latency_ms);
 }
 
-bool RequestTimingInfo::GetL2HTTPCacheLatencyMs(
-    int64* latency_ms) const {
+bool RequestTimingInfo::GetL2HTTPCacheLatencyMs(int64* latency_ms) const {
   ScopedMutex l(mu_);
   return SetValueIfGEZero(l2http_cache_latency_ms_, latency_ms);
 }

@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: gagansingh@google.com (Gagan Singh)
 
 #ifndef NET_INSTAWEB_REWRITER_PUBLIC_JS_DISABLE_FILTER_H_
 #define NET_INSTAWEB_REWRITER_PUBLIC_JS_DISABLE_FILTER_H_
@@ -40,27 +41,25 @@ namespace net_instaweb {
 class JsDisableFilter : public CommonFilter {
  public:
   explicit JsDisableFilter(RewriteDriver* driver);
-  ~JsDisableFilter();
+  ~JsDisableFilter() override;
 
   static const char kEnableJsExperimental[];
   static const char kElementOnloadCode[];
 
-  virtual void DetermineEnabled(GoogleString* disabled_reason);
+  void DetermineEnabled(GoogleString* disabled_reason) override;
 
-  virtual const char* Name() const {
-    return "JsDisableFilter";
-  }
+  const char* Name() const override { return "JsDisableFilter"; }
 
   ScriptUsage GetScriptUsage() const override { return kWillInjectScripts; }
 
  private:
-  virtual void StartDocumentImpl();
+  void StartDocumentImpl() override;
 
-  virtual void StartElementImpl(HtmlElement* element);
+  void StartElementImpl(HtmlElement* element) override;
 
-  virtual void EndElementImpl(HtmlElement* element);
+  void EndElementImpl(HtmlElement* element) override;
 
-  virtual void EndDocument();
+  void EndDocument() override;
 
   // Inserts the experimental js enable/disable code.
   void InsertJsDeferExperimentalScript();

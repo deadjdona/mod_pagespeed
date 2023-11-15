@@ -1,20 +1,22 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: pulkitg@google.com (Pulkit Goyal)
 //
 // Contains implementation of DelayImagesFilter, which delays all the high
 // quality images whose low quality inlined data url are available within their
@@ -26,7 +28,6 @@
 #include <utility>
 
 #include "base/logging.h"
-#include "net/instaweb/http/public/log_record.h"
 #include "net/instaweb/rewriter/public/critical_images_finder.h"
 #include "net/instaweb/rewriter/public/request_properties.h"
 #include "net/instaweb/rewriter/public/resource_tag_scanner.h"
@@ -39,6 +40,7 @@
 #include "pagespeed/kernel/html/html_name.h"
 #include "pagespeed/kernel/http/semantic_type.h"
 #include "pagespeed/opt/logging/enums.pb.h"
+#include "pagespeed/opt/logging/log_record.h"
 
 namespace net_instaweb {
 
@@ -75,8 +77,7 @@ DelayImagesFilter::DelayImagesFilter(RewriteDriver* driver)
       insert_low_res_images_inplace_(false),
       lazyload_highres_images_(false),
       is_script_inserted_(false),
-      added_image_onload_js_(false) {
-}
+      added_image_onload_js_(false) {}
 
 DelayImagesFilter::~DelayImagesFilter() {}
 
@@ -87,7 +88,7 @@ void DelayImagesFilter::StartDocumentImpl() {
   // Otherwise, the low res images are inserted at the end of the flush window.
   insert_low_res_images_inplace_ = ShouldRewriteInplace();
   lazyload_highres_images_ = driver()->options()->lazyload_highres_images() &&
-      driver()->request_properties()->IsMobile();
+                             driver()->request_properties()->IsMobile();
   is_script_inserted_ = false;
   added_image_onload_js_ = false;
 }
@@ -97,7 +98,7 @@ void DelayImagesFilter::MaybeAddImageOnloadJsSnippet(HtmlElement* element) {
     return;
   }
   added_image_onload_js_ = true;
-  HtmlElement* script = driver()->NewElement(NULL, HtmlName::kScript);
+  HtmlElement* script = driver()->NewElement(nullptr, HtmlName::kScript);
   driver()->AddAttribute(script, HtmlName::kDataPagespeedNoDefer,
                          StringPiece());
   // Always add the image-onload js before the current node, because the
@@ -107,9 +108,7 @@ void DelayImagesFilter::MaybeAddImageOnloadJsSnippet(HtmlElement* element) {
   AddJsToElement(kImageOnloadJsSnippet, script);
 }
 
-void DelayImagesFilter::EndDocument() {
-  low_res_data_map_.clear();
-}
+void DelayImagesFilter::EndDocument() { low_res_data_map_.clear(); }
 
 void DelayImagesFilter::EndElementImpl(HtmlElement* element) {
   if (element->keyword() == HtmlName::kBody) {
@@ -128,15 +127,16 @@ void DelayImagesFilter::EndElementImpl(HtmlElement* element) {
     // resource_tag_scanner::ScanElement.
     HtmlElement::Attribute* low_res_src =
         element->FindAttribute(HtmlName::kDataPagespeedLowResSrc);
-    if (low_res_src == NULL || low_res_src->DecodedValueOrNull() == NULL) {
+    if (low_res_src == nullptr ||
+        low_res_src->DecodedValueOrNull() == nullptr) {
       return;
     }
     HtmlElement::Attribute* src = element->FindAttribute(HtmlName::kSrc);
     semantic_type::Category category =
-        resource_tag_scanner::CategorizeAttribute(
-            element, src, driver()->options());
+        resource_tag_scanner::CategorizeAttribute(element, src,
+                                                  driver()->options());
     if (category != semantic_type::kImage ||
-        src->DecodedValueOrNull() == NULL) {
+        src->DecodedValueOrNull() == nullptr) {
       return;  // Failed to find valid Image-valued src attribute.
     }
     ++num_low_res_inlined_images_;
@@ -149,14 +149,14 @@ void DelayImagesFilter::EndElementImpl(HtmlElement* element) {
       // Rename srcset -> data-pagespeed-high-res-srcset
       HtmlElement::Attribute* srcset =
           element->FindAttribute(HtmlName::kSrcset);
-      if (srcset != NULL) {
-        driver()->SetAttributeName(
-            srcset, HtmlName::kDataPagespeedHighResSrcset);
+      if (srcset != nullptr) {
+        driver()->SetAttributeName(srcset,
+                                   HtmlName::kDataPagespeedHighResSrcset);
       }
       if (insert_low_res_images_inplace_) {
         // Set the src as the low resolution image.
         driver()->AddAttribute(element, HtmlName::kSrc,
-                              low_res_src->DecodedValueOrNull());
+                               low_res_src->DecodedValueOrNull());
         // Add an onload function to set the high resolution image after
         // deleting any existing onload handler. Since we check
         // CanAddPagespeedOnloadToImage before coming here, the only onload
@@ -204,15 +204,13 @@ void DelayImagesFilter::InsertLowResImagesAndJs(HtmlElement* element,
   if (!is_script_inserted_) {
     StaticAssetManager* manager =
         driver()->server_context()->static_asset_manager();
-    inline_script = StrCat(
-        manager->GetAsset(
-            StaticAssetEnum::DELAY_IMAGES_INLINE_JS,
-            driver()->options()),
-        kDelayImagesInlineSuffix,
-        manager->GetAsset(
-            StaticAssetEnum::DELAY_IMAGES_JS,
-            driver()->options()),
-        kDelayImagesSuffix);
+    inline_script =
+        StrCat(manager->GetAsset(StaticAssetEnum::DELAY_IMAGES_INLINE_JS,
+                                 driver()->options()),
+               kDelayImagesInlineSuffix,
+               manager->GetAsset(StaticAssetEnum::DELAY_IMAGES_JS,
+                                 driver()->options()),
+               kDelayImagesSuffix);
     HtmlElement* script_element =
         driver()->NewElement(element, HtmlName::kScript);
     driver()->AddAttribute(script_element, HtmlName::kDataPagespeedNoDefer,
@@ -236,9 +234,9 @@ void DelayImagesFilter::InsertLowResImagesAndJs(HtmlElement* element,
   GoogleString inline_data_script;
   for (StringStringMap::iterator it = low_res_data_map_.begin();
        it != low_res_data_map_.end(); ++it) {
-    inline_data_script = StrCat(
-        "\npagespeed.delayImagesInline.addLowResImages('",
-        it->first, "', '", it->second, "');");
+    inline_data_script =
+        StrCat("\npagespeed.delayImagesInline.addLowResImages('", it->first,
+               "', '", it->second, "');");
     StrAppend(&inline_data_script,
               "\npagespeed.delayImagesInline.replaceWithLowRes();\n");
     HtmlElement* low_res_element =
@@ -262,11 +260,9 @@ void DelayImagesFilter::InsertHighResJs(HtmlElement* body_element) {
   }
   GoogleString js;
   if (lazyload_highres_images_) {
-    StrAppend(&js,
-              "\npagespeed.delayImages.registerLazyLoadHighRes();\n");
+    StrAppend(&js, "\npagespeed.delayImages.registerLazyLoadHighRes();\n");
   } else {
-    StrAppend(&js,
-              "\npagespeed.delayImages.replaceWithHighRes();\n");
+    StrAppend(&js, "\npagespeed.delayImages.replaceWithHighRes();\n");
   }
   HtmlElement* script = driver()->NewElement(body_element, HtmlName::kScript);
   driver()->AddAttribute(script, HtmlName::kDataPagespeedNoDefer,

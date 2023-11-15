@@ -1,20 +1,22 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-// Author: jmarantz@google.com (Joshua Marantz)
 //
 // Implements a ref-counted string class, with full sharing.  This
 // class does *not* implement copy-on-write semantics, however, it
@@ -25,12 +27,12 @@
 #ifndef PAGESPEED_KERNEL_BASE_SHARED_STRING_H_
 #define PAGESPEED_KERNEL_BASE_SHARED_STRING_H_
 
-#include <cstddef>                     // for size_t
+#include <cstddef>  // for size_t
 
 #include "base/logging.h"
+#include "pagespeed/kernel/base/ref_counted_ptr.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_util.h"
-#include "pagespeed/kernel/base/ref_counted_ptr.h"
 
 namespace net_instaweb {
 
@@ -163,9 +165,7 @@ class SharedString {
   //
   // This routine is, however, useful to call from tests to determine
   // storage uniqueness.
-  const GoogleString* StringValue() const {
-    return ref_string_.get();
-  }
+  const GoogleString* StringValue() const { return ref_string_.get(); }
 
   // Determines whether this and that share the same storage.
   bool SharesStorage(const SharedString& that) const {

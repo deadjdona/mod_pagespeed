@@ -1,20 +1,21 @@
 /*
- * Copyright 2010 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #ifndef PAGESPEED_KERNEL_CACHE_LRU_CACHE_BASE_H_
 #define PAGESPEED_KERNEL_CACHE_LRU_CACHE_BASE_H_
@@ -23,14 +24,12 @@
 #include <list>
 #include <utility>  // for pair
 
+#include "absl/container/flat_hash_map.h"
 #include "base/logging.h"
-#include "strings/stringpiece_utils.h"
 #include "pagespeed/kernel/base/basictypes.h"
-#include "pagespeed/kernel/base/rde_hash_map.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/string_hash.h"
 #include "pagespeed/kernel/base/string_util.h"
-
 
 namespace net_instaweb {
 
@@ -57,21 +56,21 @@ namespace net_instaweb {
 //                      const ValueType& new_value) const;
 //
 // ValueType must support copy-construction and assign-by-value.
-template<class ValueType, class ValueHelper>
+template <class ValueType, class ValueHelper>
 class LRUCacheBase {
   typedef std::pair<GoogleString, ValueType> KeyValuePair;
   typedef std::list<KeyValuePair*> EntryList;
   // STL guarantees lifetime of list iterators as long as the node is in list.
   typedef typename EntryList::iterator ListNode;
 
-  typedef rde::hash_map<GoogleString, ListNode, CasePreserveStringHash> Map;
+  typedef absl::flat_hash_map<GoogleString, ListNode, CasePreserveStringHash>
+      Map;
 
  public:
   class Iterator {
    public:
     explicit Iterator(const typename EntryList::const_reverse_iterator& iter)
-        : iter_(iter) {
-    }
+        : iter_(iter) {}
 
     void operator++() { ++iter_; }
     bool operator==(const Iterator& src) const { return iter_ == src.iter_; }
@@ -98,9 +97,7 @@ class LRUCacheBase {
         value_helper_(value_helper) {
     ClearStats();
   }
-  ~LRUCacheBase() {
-    Clear();
-  }
+  ~LRUCacheBase() { Clear(); }
 
   // Resets the max size in the cache.  This does not take effect immediately;
   // e.g. if you are shrinking the cache size, this call will not evict
@@ -282,7 +279,8 @@ class LRUCacheBase {
     // Walk backward through the list, making sure it's coherent as well.
     count = 0;
     for (typename EntryList::reverse_iterator cell = lru_ordered_list_.rbegin(),
-             e = lru_ordered_list_.rend(); cell != e; ++cell, ++count) {
+                                              e = lru_ordered_list_.rend();
+         cell != e; ++cell, ++count) {
     }
     CHECK_EQ(count, static_cast<size_t>(map_.size()));
   }
@@ -294,7 +292,7 @@ class LRUCacheBase {
 
     for (ListNode p = lru_ordered_list_.begin(), e = lru_ordered_list_.end();
          p != e; ++p) {
-      KeyValuePair* key_value  = *p;
+      KeyValuePair* key_value = *p;
       delete key_value;
     }
     lru_ordered_list_.clear();
@@ -324,8 +322,7 @@ class LRUCacheBase {
 
   ListNode Freshen(ListNode cell) {
     if (cell != lru_ordered_list_.begin()) {
-      lru_ordered_list_.splice(lru_ordered_list_.begin(),
-                               lru_ordered_list_,
+      lru_ordered_list_.splice(lru_ordered_list_.begin(), lru_ordered_list_,
                                cell);
     }
 

@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: morlovich@google.com (Maksim Orlovich)
 
 #include "pagespeed/kernel/thread/pthread_thread_system.h"
 
@@ -39,13 +40,13 @@ namespace {
 class PthreadId : public ThreadSystem::ThreadId {
  public:
   PthreadId() : id_(pthread_self()) {}
-  virtual ~PthreadId() {}
+  ~PthreadId() override {}
 
-  virtual bool IsEqual(const ThreadId& that) const {
+  bool IsEqual(const ThreadId& that) const override {
     return pthread_equal(id_, dynamic_cast<const PthreadId&>(that).id_) != 0;
   }
 
-  virtual bool IsCurrentThread() const {
+  bool IsCurrentThread() const override {
     return pthread_equal(id_, pthread_self()) != 0;
   }
 
@@ -62,15 +63,11 @@ class PthreadThreadImpl : public ThreadSystem::ThreadImpl {
   PthreadThreadImpl(PthreadThreadSystem* thread_system,
                     ThreadSystem::Thread* wrapper,
                     ThreadSystem::ThreadFlags flags)
-      : thread_system_(thread_system),
-        wrapper_(wrapper),
-        flags_(flags) {
-  }
+      : thread_system_(thread_system), wrapper_(wrapper), flags_(flags) {}
 
-  virtual ~PthreadThreadImpl() {
-  }
+  ~PthreadThreadImpl() override {}
 
-  virtual bool StartImpl() {
+  bool StartImpl() override {
     int result;
 
     pthread_attr_t attr;
@@ -98,7 +95,7 @@ class PthreadThreadImpl : public ThreadSystem::ThreadImpl {
     return true;
   }
 
-  virtual void JoinImpl() {
+  void JoinImpl() override {
     void* ignored;
     pthread_join(thread_obj_, &ignored);
   }
@@ -119,7 +116,7 @@ class PthreadThreadImpl : public ThreadSystem::ThreadImpl {
 #endif
 #endif
     self->wrapper_->Run();
-    return NULL;
+    return nullptr;
   }
 
   PthreadThreadSystem* thread_system_;
@@ -130,11 +127,9 @@ class PthreadThreadImpl : public ThreadSystem::ThreadImpl {
   DISALLOW_COPY_AND_ASSIGN(PthreadThreadImpl);
 };
 
-PthreadThreadSystem::PthreadThreadSystem() {
-}
+PthreadThreadSystem::PthreadThreadSystem() {}
 
-PthreadThreadSystem::~PthreadThreadSystem() {
-}
+PthreadThreadSystem::~PthreadThreadSystem() {}
 
 ThreadSystem::CondvarCapableMutex* PthreadThreadSystem::NewMutex() {
   return new PthreadMutex;
@@ -144,17 +139,14 @@ ThreadSystem::RWLock* PthreadThreadSystem::NewRWLock() {
   return new PthreadRWLock;
 }
 
-void PthreadThreadSystem::BeforeThreadRunHook() {
-}
+void PthreadThreadSystem::BeforeThreadRunHook() {}
 
 ThreadSystem::ThreadImpl* PthreadThreadSystem::NewThreadImpl(
     ThreadSystem::Thread* wrapper, ThreadSystem::ThreadFlags flags) {
   return new PthreadThreadImpl(this, wrapper, flags);
 }
 
-Timer* PthreadThreadSystem::NewTimer() {
-  return new PosixTimer;
-}
+Timer* PthreadThreadSystem::NewTimer() { return new PosixTimer; }
 
 ThreadSystem::ThreadId* PthreadThreadSystem::GetThreadId() const {
   return new PthreadId;

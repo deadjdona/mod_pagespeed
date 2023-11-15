@@ -1,25 +1,27 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 #ifndef PAGESPEED_CONTROLLER_CENTRAL_CONTROLLER_RPC_SERVER_H_
 #define PAGESPEED_CONTROLLER_CENTRAL_CONTROLLER_RPC_SERVER_H_
 
-// Copyright 2016 Google Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// Author: cheesy@google.com (Steve Hill)
-
 #include <memory>
 
-#include "base/macros.h"
 #include "pagespeed/controller/controller.grpc.pb.h"
 #include "pagespeed/controller/expensive_operation_controller.h"
 #include "pagespeed/controller/schedule_rewrite_controller.h"
@@ -42,9 +44,8 @@ class CentralControllerRpcServer : public ControllerProcess {
   CentralControllerRpcServer(
       const GoogleString& listen_address,
       ExpensiveOperationController* expensive_operation_controller,
-      ScheduleRewriteController* rewrite_controller,
-      MessageHandler* handler);
-  virtual ~CentralControllerRpcServer() { }
+      ScheduleRewriteController* rewrite_controller, MessageHandler* handler);
+  ~CentralControllerRpcServer() override {}
 
   // ControllerProcess implementation.
   int Setup() override;
@@ -58,7 +59,7 @@ class CentralControllerRpcServer : public ControllerProcess {
   const GoogleString listen_address_;
   std::unique_ptr<::grpc::Server> server_;
   std::unique_ptr<::grpc::ServerCompletionQueue> queue_;
-  grpc::CentralControllerRpcService::AsyncService service_;
+  CentralControllerRpcService::AsyncService service_;
 
   std::unique_ptr<ExpensiveOperationController> expensive_operation_controller_;
   std::unique_ptr<ScheduleRewriteController> rewrite_controller_;

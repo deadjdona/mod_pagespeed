@@ -1,20 +1,21 @@
 /*
- * Copyright 2011 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-
-// Author: jmarantz@google.com (Joshua Marantz)
 
 #include "net/instaweb/rewriter/public/single_rewrite_context.h"
 
@@ -25,19 +26,17 @@
 #include "net/instaweb/rewriter/public/resource_slot.h"
 #include "net/instaweb/rewriter/public/rewrite_driver.h"
 #include "pagespeed/kernel/base/string.h"
-#include "pagespeed/kernel/http/http_names.h"
 #include "pagespeed/kernel/http/google_url.h"
+#include "pagespeed/kernel/http/http_names.h"
 
 namespace net_instaweb {
 
 SingleRewriteContext::SingleRewriteContext(RewriteDriver* driver,
                                            RewriteContext* parent,
                                            ResourceContext* resource_context)
-    : RewriteContext(driver, parent, resource_context) {
-}
+    : RewriteContext(driver, parent, resource_context) {}
 
-SingleRewriteContext::~SingleRewriteContext() {
-}
+SingleRewriteContext::~SingleRewriteContext() {}
 
 bool SingleRewriteContext::Partition(OutputPartitions* partitions,
                                      OutputResourceVector* outputs) {
@@ -50,9 +49,9 @@ bool SingleRewriteContext::Partition(OutputPartitions* partitions,
       GoogleString failure_reason;
       OutputResourcePtr output_resource(
           Driver()->CreateOutputResourceFromResource(
-              id(), encoder(), resource_context(),
-              resource, kind(), &failure_reason));
-      if (output_resource.get() == NULL) {
+              id(), encoder(), resource_context(), resource, kind(),
+              &failure_reason));
+      if (output_resource.get() == nullptr) {
         partitions->add_debug_message(failure_reason);
       } else {
         CachedResult* partition = partitions->add_partition();
@@ -68,22 +67,21 @@ bool SingleRewriteContext::Partition(OutputPartitions* partitions,
   return ret;
 }
 
-void SingleRewriteContext::Rewrite(int partition_index,
-                                   CachedResult* partition,
+void SingleRewriteContext::Rewrite(int partition_index, CachedResult* partition,
                                    const OutputResourcePtr& output_resource) {
   CHECK_EQ(0, partition_index);
   ResourcePtr resource(slot(0)->resource());
-  CHECK(resource.get() != NULL);
+  CHECK(resource.get() != nullptr);
   CHECK(resource->loaded());
   CHECK(resource->HttpStatusOk());
-  if (output_resource.get() != NULL) {
+  if (output_resource.get() != nullptr) {
     DCHECK_EQ(output_resource->cached_result(), partition);
   }
   RewriteSingle(resource, output_resource);
 }
 
-void SingleRewriteContext::AddLinkRelCanonical(
-    const ResourcePtr& input, ResponseHeaders* output) {
+void SingleRewriteContext::AddLinkRelCanonical(const ResourcePtr& input,
+                                               ResponseHeaders* output) {
   if (output->HasLinkRelCanonical() ||
       input->response_headers()->HasLinkRelCanonical()) {
     return;
@@ -118,7 +116,7 @@ void SingleRewriteContext::AddLinkRelCanonicalForFallbackHeaders(
     return;
   }
   ResourcePtr resource(slot(0)->resource());
-  if (resource.get() == NULL || !resource->loaded()) {
+  if (resource.get() == nullptr || !resource->loaded()) {
     return;
   }
 
