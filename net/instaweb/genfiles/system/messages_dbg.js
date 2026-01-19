@@ -539,7 +539,20 @@ goog.removeUid = function(a) {
   } catch (b) {
   }
 };
-goog.UID_PROPERTY_ = "closure_uid_" + (1E9 * Math.random() >>> 0);
+goog.secureRandomUint32_ = function() {
+  // Prefer a cryptographically secure random source when available.
+  var cryptoObj = typeof self !== "undefined" && self.crypto ? self.crypto :
+                  (typeof window !== "undefined" && window.crypto ? window.crypto :
+                  (typeof globalThis !== "undefined" && globalThis.crypto ? globalThis.crypto : null));
+  if (cryptoObj && typeof cryptoObj.getRandomValues === "function") {
+    var array = new Uint32Array(1);
+    cryptoObj.getRandomValues(array);
+    return array[0];
+  }
+  // Fallback: use Math.random() if no secure source is available.
+  return 1E9 * Math.random() >>> 0;
+};
+goog.UID_PROPERTY_ = "closure_uid_" + goog.secureRandomUint32_();
 goog.uidCounter_ = 0;
 goog.getHashCode = goog.getUid;
 goog.removeHashCode = goog.removeUid;
